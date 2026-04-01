@@ -503,12 +503,9 @@ textarea.inp{resize:vertical;height:90px;font-family:var(--mono);font-size:.78re
         </div>
       </div>
       <div class="panel">
-        <h3>Claude API</h3>
-        <p class="desc">用於 AI 自動摘要。金鑰儲存在瀏覽器 localStorage，請勿在公共電腦使用。</p>
-        <div class="irow">
-          <div class="irow-l"><div class="lbl">Claude API Key</div><div class="hint">sk-ant-api... 開頭</div></div>
-          <input class="inp" id="cfg-key" type="password" placeholder="sk-ant-api03-...">
-        </div>
+        <h3>Claude API 設定</h3>
+        <p class="desc">⚠️ Claude API Key 請填入 <strong>Apps Script</strong> 中（執行 <code>saveApiKey()</code>），<br>
+        不存於瀏覽器，更安全。此處僅設定摘要參數。</p>
         <div class="irow">
           <div class="irow-l"><div class="lbl">摘要語言</div><div class="hint">AI 輸出的語言</div></div>
           <select class="inp" id="cfg-lang" style="width:270px">
@@ -918,12 +915,12 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 document.querySelectorAll('.ov').forEach(ov => ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); }));
 
 // ════════════════════════════════════════════
-// AI FETCH & SUMMARIZE
+// AI FETCH & SUMMARIZE（透過 Apps Script 中轉，避免 CORS）
 // ════════════════════════════════════════════
 async function fetchAndSummarize() {
   const cfg = LS.get('settings') || {};
-  const apiKey = cfg.claudeKey || '';
-  if (!apiKey) { toast('⚠ 請先在「系統設定」填入 Claude API Key'); return; }
+  const gasUrl = cfg.gasUrl || '';
+  if (!gasUrl) { toast('⚠ 請先在「系統設定」填入 Apps Script URL'); return; }
 
   const btn = document.getElementById('btn-fetch');
   btn.disabled = true;
@@ -934,10 +931,10 @@ async function fetchAndSummarize() {
   const kwStr = kwList.map(k => `${k.zh}（${k.en.split(',')[0].trim()}）`).join('、');
   const count = cfg.newsCount || 10;
   const lang = cfg.lang || 'zh-TW';
-
   const today = new Date().toLocaleDateString('zh-TW');
+
   const prompt = `你是保健食品產業資深分析師。今天是 ${today}。
-請針對以下關鍵字，搜尋並整理最新（2024-2025）保健食品產業重要資訊 ${count} 則，
+請針對以下關鍵字，整理最新（2024-2025）保健食品產業重要資訊 ${count} 則，
 涵蓋台灣、日本、中國、韓國、歐洲、美國，類型包含新聞、學術論文、雜誌、官方公告。
 
 監測關鍵字：${kwStr}
@@ -954,31 +951,20 @@ async function fetchAndSummarize() {
   "date": "YYYY-MM-DD 格式",
   "tags": ["相關關鍵字1","關鍵字2","關鍵字3"]
 }
-
 回傳一個 JSON 陣列，不加任何說明文字或 markdown 符號，直接輸出 JSON。`;
 
   try {
     setProgress(30);
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4096,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    // ✅ 透過 Apps Script 中轉呼叫 Claude API，解決瀏覽器 CORS 限制
+    const data = await postGAS(gasUrl, { action: 'summarize', data: { prompt } });
     setProgress(70);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const raw = (data.content || []).find(b => b.type === 'text')?.text || '';
-    const clean = raw.replace(/```json|```/g, '').trim();
+    if (data.status !== 'ok') throw new Error(data.message || '呼叫失敗');
+    const clean = (data.text || '').replace(/```json|```/g, '').trim();
     const arr = JSON.parse(clean);
     setProgress(90);
     S.news = arr;
     LS.set('news', arr);
-    // update keyword counts from news text
-    const fullText = arr.map(n => n.title + ' ' + n.summary + ' ' + n.detail + ' ' + (n.tags||[]).join(' ')).join(' ');
+    const fullText = arr.map(n => n.title + ' ' + n.summary + ' ' + (n.detail||'') + ' ' + (n.tags||[]).join(' ')).join(' ');
     S.kwCounts = countKeywordsInText(fullText);
     LS.set('kwCounts', S.kwCounts);
     updateStats();
@@ -1017,8 +1003,8 @@ function updateCharCount() {
 
 async function manualSummarize() {
   const cfg = LS.get('settings') || {};
-  const apiKey = cfg.claudeKey || '';
-  if (!apiKey) { toast('⚠ 請先設定 Claude API Key'); return; }
+  const gasUrl = cfg.gasUrl || '';
+  if (!gasUrl) { toast('⚠ 請先在「系統設定」填入 Apps Script URL'); return; }
   const content = document.getElementById('m-content').value.trim();
   if (!content) { toast('⚠ 請先貼入內容'); return; }
 
@@ -1048,19 +1034,10 @@ ${content.slice(0, 6000)}
 直接輸出 JSON，不加任何說明文字。`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const raw = (data.content || []).find(b => b.type === 'text')?.text || '';
-    const clean = raw.replace(/```json|```/g, '').trim();
+    // ✅ 透過 Apps Script 中轉呼叫 Claude API，解決瀏覽器 CORS 限制
+    const data = await postGAS(gasUrl, { action: 'summarize', data: { prompt } });
+    if (data.status !== 'ok') throw new Error(data.message || '呼叫失敗');
+    const clean = (data.text || '').replace(/```json|```/g, '').trim();
     const item = JSON.parse(clean);
     const newItem = {
       ...item,
@@ -1072,8 +1049,7 @@ ${content.slice(0, 6000)}
     };
     S.news.unshift(newItem);
     LS.set('news', S.news);
-    // Update keyword counts
-    const txt = newItem.title + ' ' + newItem.summary + ' ' + newItem.detail + ' ' + (newItem.tags||[]).join(' ');
+    const txt = newItem.title + ' ' + newItem.summary + ' ' + (newItem.detail||'') + ' ' + (newItem.tags||[]).join(' ');
     const addCounts = countKeywordsInText(txt);
     Object.entries(addCounts).forEach(([k, v]) => S.kwCounts[k] = (S.kwCounts[k] || 0) + v);
     LS.set('kwCounts', S.kwCounts);
@@ -1251,7 +1227,6 @@ function loadSettings() {
   document.getElementById('cfg-gas').value   = c.gasUrl  || '';
   document.getElementById('cfg-s1').value    = c.sheet1  || '';
   document.getElementById('cfg-s2').value    = c.sheet2  || '';
-  document.getElementById('cfg-key').value   = c.claudeKey || '';
   document.getElementById('cfg-lang').value  = c.lang    || 'zh-TW';
   document.getElementById('cfg-count').value = c.newsCount || 10;
   document.getElementById('cfg-usr').value   = Object.keys(USERS)[0] || 'admin';
@@ -1263,12 +1238,10 @@ function saveSettings() {
     gasUrl:    document.getElementById('cfg-gas').value.trim(),
     sheet1:    document.getElementById('cfg-s1').value.trim(),
     sheet2:    document.getElementById('cfg-s2').value.trim(),
-    claudeKey: document.getElementById('cfg-key').value.trim(),
     lang:      document.getElementById('cfg-lang').value,
     newsCount: parseInt(document.getElementById('cfg-count').value) || 10,
   };
   LS.set('settings', cfg);
-  // Update user accounts if passwords provided
   const admin = document.getElementById('cfg-usr').value.trim();
   const adminPwd = document.getElementById('cfg-pwd').value;
   const reader = document.getElementById('cfg-rusr').value.trim();
