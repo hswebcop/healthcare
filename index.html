@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>保健食品情報中心</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* ─── DESIGN TOKENS ─── */
+:root{
+  --bg0:#07090d;--bg1:#0d1117;--bg2:#131920;--bg3:#1a2230;--bg4:#212d3d;
+  --bdr:#243040;--bdr2:#334455;
+  --t0:#ddeeff;--t1:#8aaabb;--t2:#4a6070;
+  --g:#00c9a7;--g2:#00a88b;--gbg:rgba(0,201,167,.09);
+  --bl:#4da8f0;--blbg:rgba(77,168,240,.1);
+  --am:#f0b44d;--ambg:rgba(240,180,77,.1);
+  --rd:#f06068;--rdbg:rgba(240,96,104,.1);
+  --pu:#b48df0;--pubg:rgba(180,141,240,.1);
+  --gr:#4df09a;--grbg:rgba(77,240,154,.1);
+  --font:'Noto Sans TC',system-ui,sans-serif;
+  --mono:'DM Mono',monospace;
+  --r:8px;--r2:12px;--r3:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--font);background:var(--bg0);color:var(--t0);overflow-x:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+a{color:var(--bl);text-decoration:none}
+a:hover{text-decoration:underline}
+/* grid noise texture */
+body::before{content:'';position:fixed;inset:0;opacity:.018;
+  background-image:repeating-linear-gradient(0deg,#0ff 0,#0ff 1px,transparent 1px,transparent 40px),
+  repeating-linear-gradient(90deg,#0ff 0,#0ff 1px,transparent 1px,transparent 40px);
+  pointer-events:none;z-index:0}
+
+/* ─── LOGIN ─── */
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg0);z-index:900}
+.lcard{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r3);padding:2.4rem 2rem;width:370px;position:relative}
+.lcard::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);
+  width:200px;height:200px;background:radial-gradient(circle,rgba(0,201,167,.12),transparent 65%);pointer-events:none}
+.l-logo{text-align:center;margin-bottom:1.8rem}
+.l-logo .badge-sys{display:inline-flex;align-items:center;gap:.35rem;background:var(--gbg);
+  border:1px solid rgba(0,201,167,.35);border-radius:20px;padding:.22rem .75rem;margin-bottom:.9rem}
+.l-logo .badge-sys span{font-size:.62rem;color:var(--g);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.l-logo h1{font-size:1.2rem;font-weight:900;letter-spacing:.03em}
+.l-logo p{font-size:.73rem;color:var(--t2);margin-top:.25rem;font-family:var(--mono)}
+.fg{margin-bottom:1rem}
+.fg label{display:block;font-size:.68rem;color:var(--t2);margin-bottom:.4rem;
+  text-transform:uppercase;letter-spacing:.07em}
+.fg input{width:100%;padding:.62rem .85rem;background:var(--bg2);
+  border:1px solid var(--bdr);border-radius:var(--r);
+  color:var(--t0);font-size:.9rem;transition:border-color .2s}
+.fg input:focus{outline:none;border-color:var(--g)}
+.btn-login{width:100%;padding:.72rem;background:var(--g);border:none;
+  border-radius:var(--r);color:#041a14;font-weight:700;font-size:.93rem;
+  cursor:pointer;transition:background .2s;letter-spacing:.04em;margin-top:.3rem}
+.btn-login:hover{background:var(--g2)}
+#l-err{color:var(--rd);font-size:.78rem;margin-top:.6rem;text-align:center;display:none}
+.l-hint{font-size:.68rem;color:var(--t2);text-align:center;margin-top:1rem;
+  font-family:var(--mono);line-height:1.7}
+
+/* ─── APP SHELL ─── */
+#app{display:none;position:relative;z-index:1}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:224px;
+  background:var(--bg1);border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;z-index:100}
+.sb-brand{padding:1.25rem 1.1rem .9rem;border-bottom:1px solid var(--bdr)}
+.sb-brand .chip{display:inline-flex;align-items:center;gap:.3rem;background:var(--gbg);
+  border:1px solid rgba(0,201,167,.3);border-radius:20px;padding:.18rem .6rem;margin-bottom:.6rem}
+.sb-brand .chip span{font-size:.58rem;color:var(--g);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase}
+.sb-brand h2{font-size:1rem;font-weight:700;line-height:1.3}
+.sb-brand p{font-size:.68rem;color:var(--t2);margin-top:.1rem;font-family:var(--mono)}
+.sb-nav{flex:1;padding:.5rem 0;overflow-y:auto}
+.nav-sec{padding:.7rem 1.1rem .2rem;font-size:.62rem;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--t2)}
+.ni{display:flex;align-items:center;gap:.6rem;padding:.52rem 1.1rem;
+  cursor:pointer;font-size:.84rem;color:var(--t1);
+  border-left:2px solid transparent;transition:all .15s}
+.ni:hover{color:var(--t0);background:var(--bg2)}
+.ni.on{color:var(--g);border-left-color:var(--g);background:var(--gbg)}
+.ni .ico{width:16px;text-align:center;font-style:normal;flex-shrink:0}
+.sb-foot{padding:.85rem 1.1rem;border-top:1px solid var(--bdr)}
+.u-row{display:flex;align-items:center;gap:.55rem}
+.avatar{width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--g),var(--bl));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;color:#041a14;flex-shrink:0}
+.u-name{font-size:.78rem;color:var(--t1);flex:1}
+.btn-out{background:none;border:none;cursor:pointer;font-size:.7rem;
+  color:var(--t2);transition:color .2s;padding:.15rem}
+.btn-out:hover{color:var(--rd)}
+
+/* ─── MAIN CONTENT ─── */
+.main{margin-left:224px;padding:1.6rem 1.8rem;min-height:100vh}
+.pg{display:none;animation:fi .22s ease}
+.pg.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ─── TOPBAR ─── */
+.tbar{display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:1.4rem;gap:.8rem}
+.tbar-l h2{font-size:1.25rem;font-weight:700}
+.tbar-l .dt{font-size:.72rem;color:var(--t2);margin-top:.2rem;font-family:var(--mono)}
+.tbar-r{display:flex;gap:.45rem;flex-wrap:wrap;flex-shrink:0}
+
+/* ─── BUTTONS ─── */
+.btn{padding:.4rem .85rem;border-radius:var(--r);font-size:.8rem;
+  cursor:pointer;border:1px solid var(--bdr2);background:var(--bg3);
+  color:var(--t1);transition:all .2s;white-space:nowrap}
+.btn:hover{border-color:var(--g);color:var(--g)}
+.btn.primary{background:var(--g);border-color:var(--g);color:#041a14;font-weight:700}
+.btn.primary:hover{background:var(--g2);border-color:var(--g2)}
+.btn.blue-btn{background:var(--blbg);border-color:var(--bl);color:var(--bl)}
+.btn.blue-btn:hover{background:var(--bl);color:#000}
+.btn.sm{padding:.28rem .6rem;font-size:.73rem}
+.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+
+/* ─── STAT CARDS ─── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:1.4rem}
+.sc{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r2);
+  padding:.95rem 1.1rem;position:relative;overflow:hidden}
+.sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--cc,var(--g))}
+.sc-lbl{font-size:.68rem;color:var(--t2);margin-bottom:.4rem;
+  text-transform:uppercase;letter-spacing:.07em}
+.sc-val{font-size:1.75rem;font-weight:900;line-height:1;
+  color:var(--cc,var(--g));font-family:var(--mono)}
+.sc-sub{font-size:.68rem;color:var(--t2);margin-top:.3rem}
+
+/* ─── SECTION HEADING ─── */
+.sh{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--t2);margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem}
+.sh::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* ─── KEYWORD CLOUD ─── */
+.cloud-wrap{background:var(--bg1);border:1px solid var(--bdr);
+  border-radius:var(--r2);padding:1.2rem;margin-bottom:1.4rem}
+.cloud-inner{min-height:150px;display:flex;flex-wrap:wrap;
+  gap:.45rem .7rem;align-items:center;padding:.2rem 0}
+.kw{cursor:pointer;font-weight:700;line-height:1;transition:opacity .2s}
+.kw:hover{opacity:.6}
+.kw sup{font-size:.52em;opacity:.55;font-family:var(--mono);margin-left:.1em}
+
+/* ─── NEWS GRID ─── */
+.ngrid{display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem;margin-bottom:1.4rem}
+.ncard{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r2);
+  padding:1rem 1.1rem;cursor:pointer;transition:border-color .2s,transform .15s;
+  display:flex;flex-direction:column}
+.ncard:hover{border-color:var(--g);transform:translateY(-2px)}
+.ncard-top{display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap}
+.ncard h3{font-size:.88rem;font-weight:600;line-height:1.45;margin-bottom:.5rem}
+.ncard p{font-size:.81rem;color:var(--t1);line-height:1.65;flex:1}
+.ncard-foot{display:flex;align-items:center;justify-content:space-between;
+  margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--bdr)}
+.nsrc{font-size:.7rem;color:var(--t2)}
+.nsrc a{color:var(--bl);text-decoration:none}
+.nsrc a:hover{text-decoration:underline}
+.ndate{font-size:.68rem;color:var(--t2);font-family:var(--mono)}
+.ntags{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:.45rem}
+.ntag{padding:.08rem .4rem;border-radius:3px;font-size:.65rem;
+  background:var(--bg3);color:var(--t2);border:1px solid var(--bdr)}
+
+/* ─── BADGES ─── */
+.bde{padding:.1rem .48rem;border-radius:4px;font-size:.66rem;
+  font-weight:700;letter-spacing:.04em;white-space:nowrap}
+.tw{background:rgba(77,168,240,.15);color:var(--bl)}
+.jp{background:rgba(180,141,240,.15);color:var(--pu)}
+.cn{background:rgba(240,96,104,.15);color:var(--rd)}
+.kr{background:rgba(77,240,154,.15);color:var(--gr)}
+.eu{background:rgba(240,180,77,.15);color:var(--am)}
+.us{background:rgba(0,201,167,.15);color:var(--g)}
+.tp-paper{background:rgba(180,141,240,.12);color:var(--pu)}
+.tp-news{background:rgba(77,168,240,.12);color:var(--bl)}
+.tp-magazine{background:rgba(240,180,77,.12);color:var(--am)}
+.tp-blog{background:rgba(77,240,154,.12);color:var(--gr)}
+
+/* ─── MODAL ─── */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);
+  z-index:400;align-items:center;justify-content:center;padding:1rem}
+.ov.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r3);
+  width:680px;max-width:100%;max-height:86vh;overflow-y:auto;padding:1.5rem}
+.mh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:.8rem}
+.mh h3{font-size:1rem;font-weight:600;line-height:1.45;flex:1}
+.mclose{background:none;border:none;cursor:pointer;color:var(--t2);
+  font-size:1.2rem;transition:color .2s;padding:.1rem}
+.mclose:hover{color:var(--t0)}
+.mbody{font-size:.84rem;color:var(--t1);line-height:1.7}
+.mfoo{margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--bdr);
+  display:flex;justify-content:space-between;align-items:center}
+.src-link{font-size:.78rem;color:var(--bl)}
+
+/* ─── TABLE ─── */
+.tbl-wrap{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r2);overflow:hidden;margin-bottom:1rem}
+table{width:100%;border-collapse:collapse;font-size:.81rem}
+th{text-align:left;padding:.6rem .9rem;background:var(--bg3);color:var(--t2);
+  font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;
+  border-bottom:1px solid var(--bdr)}
+td{padding:.58rem .9rem;border-bottom:1px solid var(--bdr);color:var(--t0);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px}
+.dot-g{background:var(--g)}.dot-a{background:var(--am)}.dot-r{background:var(--rd)}
+
+/* ─── PANELS / SETTINGS ─── */
+.panel{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r2);
+  padding:1.2rem;margin-bottom:1rem}
+.panel h3{font-size:.85rem;font-weight:600;margin-bottom:.9rem;color:var(--t0)}
+.panel p.desc{font-size:.75rem;color:var(--t2);margin-bottom:.9rem;line-height:1.6}
+.irow{display:flex;align-items:center;justify-content:space-between;
+  padding:.52rem 0;border-bottom:1px solid var(--bdr)}
+.irow:last-child{border-bottom:none}
+.irow-l .lbl{font-size:.83rem}
+.irow-l .hint{font-size:.72rem;color:var(--t2);margin-top:.1rem}
+.inp{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);
+  color:var(--t0);padding:.5rem .75rem;font-size:.82rem;font-family:var(--font);
+  transition:border-color .2s;width:270px}
+.inp:focus{outline:none;border-color:var(--g)}
+.inp.full{width:100%}
+textarea.inp{resize:vertical;height:90px;font-family:var(--mono);font-size:.78rem}
+
+/* ─── TABS ─── */
+.tabs{display:flex;gap:.2rem;margin-bottom:1rem;border-bottom:1px solid var(--bdr);padding-bottom:-1px}
+.tab{padding:.48rem .9rem;font-size:.82rem;cursor:pointer;
+  color:var(--t2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.tab.on{color:var(--g);border-bottom-color:var(--g)}
+.tab-pane{display:none}
+.tab-pane.on{display:block}
+
+/* ─── LOADING ─── */
+.spin{display:inline-block;width:20px;height:20px;border:2px solid var(--bdr);
+  border-top-color:var(--g);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading{text-align:center;padding:2.5rem;color:var(--t2);font-size:.85rem}
+.loading .spin{display:block;margin:0 auto .8rem}
+
+/* ─── MANUAL PASTE ─── */
+.paste-area{position:relative}
+.paste-area textarea.inp{height:180px;width:100%}
+.char-count{font-size:.68rem;color:var(--t2);font-family:var(--mono);margin-top:.3rem;text-align:right}
+
+/* ─── EMPTY STATE ─── */
+.empty{text-align:center;padding:3rem;color:var(--t2)}
+.empty .eico{font-size:2rem;margin-bottom:.6rem;opacity:.5}
+.empty p{font-size:.83rem;line-height:1.7}
+
+/* ─── TOAST ─── */
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;
+  background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);
+  padding:.65rem 1.1rem;font-size:.82rem;z-index:999;
+  opacity:0;transition:opacity .3s;pointer-events:none;max-width:320px}
+#toast.show{opacity:1}
+
+/* ─── FILTERS ─── */
+.fbar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.fbar select{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);
+  color:var(--t1);padding:.38rem .65rem;font-size:.8rem;cursor:pointer}
+.fbar select:focus{outline:none;border-color:var(--g)}
+
+/* ─── EMAIL PREVIEW ─── */
+.eml-preview{background:var(--bg0);border:1px solid var(--bdr);border-radius:var(--r);
+  padding:1.1rem;font-size:.78rem;font-family:var(--mono);
+  line-height:1.8;white-space:pre-wrap;max-height:380px;overflow-y:auto;color:var(--t1)}
+
+/* ─── PROGRESS BAR ─── */
+.prog-wrap{height:4px;background:var(--bg3);border-radius:2px;margin-bottom:1.2rem;overflow:hidden;display:none}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--g),var(--bl));
+  border-radius:2px;transition:width .4s ease;width:0%}
+
+/* ─── REGION FLAGS ─── */
+.flags{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem}
+.flag-chip{padding:.1rem .5rem;border-radius:3px;font-size:.68rem;font-weight:600}
+
+@media(max-width:960px){
+  .sidebar{width:190px}
+  .main{margin-left:190px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .ngrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════ -->
+<div id="login-screen">
+  <div class="lcard">
+    <div class="l-logo">
+      <div class="badge-sys"><span>● Health Intel Hub v2</span></div>
+      <h1>保健食品情報中心</h1>
+      <p>台灣 · 中日韓 · 歐美 情報整合系統</p>
+    </div>
+    <div class="fg"><label>帳號</label><input id="l-user" type="text" placeholder="username" autocomplete="username"></div>
+    <div class="fg"><label>密碼</label><input id="l-pass" type="password" placeholder="password" autocomplete="current-password"></div>
+    <button class="btn-login" onclick="doLogin()">登入系統</button>
+    <div id="l-err">帳號或密碼錯誤，請重試</div>
+    <div class="l-hint">預設帳號：admin<br>預設密碼：Health2024!<br>（可於設定頁修改）</div>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="chip"><span>Live</span></div>
+      <h2>保健情報中心</h2>
+      <p>Health Intel Hub</p>
+    </div>
+    <nav class="sb-nav">
+      <div class="nav-sec">情報</div>
+      <div class="ni on" data-page="dashboard" onclick="nav(this)"><i class="ico">⬡</i>今日摘要</div>
+      <div class="ni" data-page="news" onclick="nav(this)"><i class="ico">◈</i>最新資訊</div>
+      <div class="ni" data-page="keywords" onclick="nav(this)"><i class="ico">◉</i>關鍵字分析</div>
+      <div class="nav-sec">管理</div>
+      <div class="ni" data-page="sources" onclick="nav(this)"><i class="ico">⊞</i>來源 &amp; 帳號</div>
+      <div class="ni" data-page="email" onclick="nav(this)"><i class="ico">⊠</i>Email 通知</div>
+      <div class="ni" data-page="settings" onclick="nav(this)"><i class="ico">⚙</i>系統設定</div>
+    </nav>
+    <div class="sb-foot">
+      <div class="u-row">
+        <div class="avatar" id="u-av">A</div>
+        <span class="u-name" id="u-nm">admin</span>
+        <button class="btn-out" onclick="doLogout()">登出</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="pg on" id="pg-dashboard">
+      <div class="tbar">
+        <div class="tbar-l">
+          <h2>今日保健食品情報摘要</h2>
+          <div class="dt" id="today-dt"></div>
+        </div>
+        <div class="tbar-r">
+          <button class="btn" onclick="sendEmailNow()">⊠ 發送今日摘要</button>
+          <button class="btn primary" id="btn-fetch" onclick="fetchAndSummarize()">↻ AI 自動更新</button>
+        </div>
+      </div>
+
+      <!-- progress -->
+      <div class="prog-wrap" id="prog-wrap"><div class="prog-bar" id="prog-bar"></div></div>
+
+      <!-- stats -->
+      <div class="stats">
+        <div class="sc" style="--cc:var(--bl)"><div class="sc-lbl">今日新聞 / 論文</div><div class="sc-val" id="st-news">—</div><div class="sc-sub">已摘要整理</div></div>
+        <div class="sc" style="--cc:var(--pu)"><div class="sc-lbl">論文數量</div><div class="sc-val" id="st-papers">—</div><div class="sc-sub">PubMed · J-STAGE · CNKI</div></div>
+        <div class="sc" style="--cc:var(--am)"><div class="sc-lbl">監測關鍵字</div><div class="sc-val" id="st-kw">—</div><div class="sc-sub">含各國同義字</div></div>
+        <div class="sc" style="--cc:var(--gr)"><div class="sc-lbl">通知收件者</div><div class="sc-val" id="st-em">—</div><div class="sc-sub">Email 訂閱人數</div></div>
+      </div>
+
+      <!-- keyword cloud -->
+      <div class="sh">關鍵字比重圖 <small style="font-size:.65em;font-weight:400;text-transform:none;letter-spacing:0">（出現次數越多字越大，含中日韓英同義字計算）</small></div>
+      <div class="cloud-wrap">
+        <div class="cloud-inner" id="kw-cloud">
+          <div style="color:var(--t2);font-size:.82rem;width:100%;text-align:center;padding:2rem 0">尚未載入 — 請點選「AI 自動更新」</div>
+        </div>
+      </div>
+
+      <!-- top news -->
+      <div class="sh">今日重點資訊</div>
+      <div class="ngrid" id="dash-grid">
+        <div class="loading" style="grid-column:span 2">
+          <div class="spin"></div>等待 AI 更新或手動貼入內容
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NEWS ── -->
+    <div class="pg" id="pg-news">
+      <div class="tbar">
+        <div class="tbar-l"><h2>最新資訊</h2></div>
+        <div class="tbar-r">
+          <button class="btn blue-btn" onclick="openManual()">✎ 手動貼入內容</button>
+          <button class="btn primary" onclick="fetchAndSummarize()">↻ AI 自動更新</button>
+        </div>
+      </div>
+      <div class="fbar">
+        <select id="f-region" onchange="filterNews()">
+          <option value="">全部地區</option>
+          <option value="tw">🇹🇼 台灣</option>
+          <option value="jp">🇯🇵 日本</option>
+          <option value="cn">🇨🇳 中國</option>
+          <option value="kr">🇰🇷 韓國</option>
+          <option value="eu">🇪🇺 歐洲</option>
+          <option value="us">🇺🇸 美國</option>
+        </select>
+        <select id="f-type" onchange="filterNews()">
+          <option value="">全部類型</option>
+          <option value="news">新聞</option>
+          <option value="paper">論文</option>
+          <option value="magazine">雜誌</option>
+          <option value="blog">部落格</option>
+        </select>
+        <span id="f-count" style="font-size:.75rem;color:var(--t2);font-family:var(--mono)"></span>
+      </div>
+      <div class="ngrid" id="news-grid"></div>
+    </div>
+
+    <!-- ── KEYWORDS ── -->
+    <div class="pg" id="pg-keywords">
+      <div class="tbar"><div class="tbar-l"><h2>關鍵字分析</h2></div>
+        <div class="tbar-r"><button class="btn primary" onclick="saveKeywords()">↓ 儲存關鍵字</button></div>
+      </div>
+      <div class="sh">關鍵字比重雲</div>
+      <div class="cloud-wrap"><div class="cloud-inner" id="kw-cloud2"></div></div>
+      <div class="sh">同義字對照表（含各國語言）</div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>中文</th><th>日文</th><th>韓文</th><th>英文</th><th>類別</th><th>今日出現次數</th></tr></thead>
+        <tbody id="syn-tbody"></tbody></table>
+      </div>
+      <div class="panel" style="margin-top:1rem">
+        <h3>關鍵字清單編輯（每行一組，格式：中文|日文|韓文|英文）</h3>
+        <p class="desc">修改後按儲存。此清單將用於自動摘要時的關鍵字抽取與同義字計算。</p>
+        <textarea class="inp full" id="kw-editor" style="height:220px;font-family:var(--mono);font-size:.75rem"></textarea>
+        <div style="margin-top:.7rem;display:flex;gap:.5rem">
+          <button class="btn primary" onclick="saveKeywords()">↓ 儲存</button>
+          <button class="btn" onclick="syncKwFromSheet()">⇅ 從 Google Sheet 同步</button>
+          <button class="btn" onclick="resetDefaultKw()">↺ 還原預設</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SOURCES & ACCOUNTS ── -->
+    <div class="pg" id="pg-sources">
+      <div class="tbar"><div class="tbar-l"><h2>來源管理 &amp; 帳號</h2></div>
+        <div class="tbar-r"><button class="btn primary" onclick="addSourcePrompt()">＋ 新增來源</button></div>
+      </div>
+      <div class="tabs">
+        <div class="tab on" onclick="swTab(this,'src-sites')">🌐 網站清單</div>
+        <div class="tab" onclick="swTab(this,'src-accounts')">🔐 帳號密碼（唯讀）</div>
+      </div>
+      <div class="tab-pane on" id="src-sites">
+        <div class="tbl-wrap">
+          <table><thead><tr><th>來源名稱</th><th>網址</th><th>地區</th><th>類型</th><th>需登入</th><th>狀態</th><th>操作</th></tr></thead>
+          <tbody id="src-tbody"></tbody></table>
+        </div>
+      </div>
+      <div class="tab-pane" id="src-accounts">
+        <div class="panel">
+          <p class="desc">帳號密碼從已連結的 Google Sheet 讀取（URL + 帳號 + 密碼欄位）。<br>
+          密碼欄位不顯示於此畫面，僅由 Apps Script 在伺服器端使用。<br>
+          如需更新帳號密碼，請直接編輯 Google Sheet。</p>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>網站 URL</th><th>帳號</th><th>中文姓名</th><th>英文姓名</th><th>Email</th><th>角色</th><th>建立日期</th></tr></thead>
+          <tbody id="acc-tbody"></tbody></table>
+        </div>
+        <div style="margin-top:.7rem;display:flex;gap:.5rem">
+          <button class="btn" onclick="syncAccounts()">⇅ 從 Google Sheet 同步帳號資料</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EMAIL ── -->
+    <div class="pg" id="pg-email">
+      <div class="tbar"><div class="tbar-l"><h2>Email 通知管理</h2></div></div>
+      <div class="panel">
+        <h3>收件者清單</h3>
+        <p class="desc">每行一個 Email 地址。此清單也可從 Google Sheet 的「Email清單」工作表同步。</p>
+        <textarea class="inp full" id="email-list" placeholder="user@example.com&#10;team@company.com"></textarea>
+        <div style="margin-top:.7rem;display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn primary" onclick="saveEmails()">↓ 儲存</button>
+          <button class="btn" onclick="syncEmailsFromSheet()">⇅ 從 Google Sheet 同步</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>今日摘要郵件預覽</h3>
+        <div class="eml-preview" id="eml-prev">點選「AI 自動更新」後，這裡會顯示今日郵件預覽...</div>
+        <div style="margin-top:.8rem;display:flex;gap:.5rem">
+          <button class="btn primary" onclick="sendEmailNow()">⊠ 立即發送摘要</button>
+          <button class="btn" onclick="buildEmailPreview()">↻ 重新生成預覽</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="pg" id="pg-settings">
+      <div class="tbar"><div class="tbar-l"><h2>系統設定</h2></div>
+        <div class="tbar-r"><button class="btn primary" onclick="saveSettings()">↓ 儲存設定</button></div>
+      </div>
+      <div class="panel">
+        <h3>Google Sheet 整合</h3>
+        <p class="desc">需要兩個 Google Sheet：<br>
+        ① 主要清單 Sheet（由本系統的 Apps Script 建立）<br>
+        ② 帳號密碼 Sheet（您已建立，欄位：URL · 帳號 · 密碼 · 中文姓名 · 英文姓名 · email · 角色 · 帳號建立日期）</p>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">Apps Script Web App URL</div><div class="hint">部署後的 doGet/doPost 端點</div></div>
+          <input class="inp" id="cfg-gas" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">主要清單 Sheet ID</div><div class="hint">網站清單 · 關鍵字 · Email</div></div>
+          <input class="inp" id="cfg-s1" placeholder="Google Sheet ID">
+        </div>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">帳號密碼 Sheet ID</div><div class="hint">您已建立的那份 Sheet</div></div>
+          <input class="inp" id="cfg-s2" placeholder="Google Sheet ID">
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Claude API</h3>
+        <p class="desc">用於 AI 自動摘要。金鑰儲存在瀏覽器 localStorage，請勿在公共電腦使用。</p>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">Claude API Key</div><div class="hint">sk-ant-api... 開頭</div></div>
+          <input class="inp" id="cfg-key" type="password" placeholder="sk-ant-api03-...">
+        </div>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">摘要語言</div><div class="hint">AI 輸出的語言</div></div>
+          <select class="inp" id="cfg-lang" style="width:270px">
+            <option value="zh-TW">繁體中文</option>
+            <option value="zh-CN">簡體中文</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">每次摘要則數</div><div class="hint">建議 8–15 則</div></div>
+          <input class="inp" id="cfg-count" type="number" value="10" min="5" max="20" style="width:100px">
+        </div>
+      </div>
+      <div class="panel">
+        <h3>登入帳號管理</h3>
+        <p class="desc">修改後立即生效。帳號資料僅儲存於瀏覽器 localStorage。</p>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">管理員帳號</div></div>
+          <input class="inp" id="cfg-usr" value="admin" style="width:150px">
+        </div>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">管理員密碼</div></div>
+          <input class="inp" id="cfg-pwd" type="password" placeholder="新密碼（留空不修改）" style="width:200px">
+        </div>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">唯讀帳號</div><div class="hint">僅能瀏覽，不可編輯</div></div>
+          <input class="inp" id="cfg-rusr" value="viewer" style="width:150px">
+        </div>
+        <div class="irow">
+          <div class="irow-l"><div class="lbl">唯讀密碼</div></div>
+          <input class="inp" id="cfg-rpwd" type="password" placeholder="新密碼（留空不修改）" style="width:200px">
+        </div>
+      </div>
+      <div style="margin-top:.5rem">
+        <button class="btn primary" onclick="saveSettings()">↓ 儲存所有設定</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ NEWS DETAIL MODAL ════════════════════ -->
+<div class="ov" id="news-ov">
+  <div class="modal">
+    <div class="mh">
+      <h3 id="m-title"></h3>
+      <button class="mclose" onclick="closeModal('news-ov')">✕</button>
+    </div>
+    <div class="mbody" id="m-body"></div>
+    <div class="mfoo">
+      <a class="src-link" id="m-src" href="#" target="_blank" rel="noopener">↗ 查看原文</a>
+      <span id="m-date" style="font-size:.72rem;color:var(--t2);font-family:var(--mono)"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MANUAL PASTE MODAL ═══════════════════ -->
+<div class="ov" id="manual-ov">
+  <div class="modal" style="width:720px">
+    <div class="mh">
+      <h3>手動貼入內容摘要</h3>
+      <button class="mclose" onclick="closeModal('manual-ov')">✕</button>
+    </div>
+    <div class="mbody">
+      <p style="font-size:.8rem;color:var(--t1);margin-bottom:.8rem;line-height:1.65">
+        將新聞、論文摘要、雜誌文章等原文貼入下方，AI 將自動摘要並加入今日情報中。<br>
+        可一次貼入多篇，用空行或 <code>---</code> 分隔。
+      </p>
+      <div style="margin-bottom:.7rem">
+        <label style="font-size:.73rem;color:var(--t2);display:block;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.06em">
+          來源資訊（選填）
+        </label>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <input class="inp" id="m-src-name" placeholder="來源名稱" style="width:180px">
+          <input class="inp" id="m-src-url" placeholder="原文網址" style="flex:1;min-width:200px">
+          <select class="inp" id="m-src-region" style="width:120px">
+            <option value="tw">🇹🇼 台灣</option><option value="jp">🇯🇵 日本</option>
+            <option value="cn">🇨🇳 中國</option><option value="kr">🇰🇷 韓國</option>
+            <option value="eu">🇪🇺 歐洲</option><option value="us">🇺🇸 美國</option>
+          </select>
+          <select class="inp" id="m-src-type" style="width:110px">
+            <option value="news">新聞</option><option value="paper">論文</option>
+            <option value="magazine">雜誌</option><option value="blog">部落格</option>
+          </select>
+        </div>
+      </div>
+      <div class="paste-area">
+        <label style="font-size:.73rem;color:var(--t2);display:block;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.06em">貼入原文</label>
+        <textarea class="inp" id="m-content" placeholder="將原文內容貼入此處..." oninput="updateCharCount()"></textarea>
+        <div class="char-count" id="char-count">0 字</div>
+      </div>
+      <div style="margin-top:.9rem;display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn" onclick="closeModal('manual-ov')">取消</button>
+        <button class="btn primary" id="btn-manual-sum" onclick="manualSummarize()">✦ AI 摘要此內容</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+// ════════════════════════════════════════════
+// CONSTANTS & STATE
+// ════════════════════════════════════════════
+const APP_KEY = 'hih_v2';
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(APP_KEY+'_'+k)); } catch(e){ return null; } },
+  set: (k, v) => localStorage.setItem(APP_KEY+'_'+k, JSON.stringify(v)),
+};
+
+// Default users (overridable via settings)
+let USERS = LS.get('users') || { admin: 'Health2024!', viewer: 'View2024!' };
+
+// Default keyword list: zh|jp|kr|en
+const DEFAULT_KEYWORDS = [
+  '益生菌|プロバイオティクス|유산균|Probiotics,Lactobacillus',
+  '魚油|フィッシュオイル|오메가3,어유|Fish Oil,Omega-3,DHA,EPA',
+  '薑黃素|クルクミン|커큐민|Curcumin,Turmeric',
+  '維生素D|ビタミンD|비타민D|Vitamin D,Vitamin D3,Cholecalciferol',
+  '膠原蛋白|コラーゲン|콜라겐|Collagen,Collagen Peptide',
+  'NMN|NMN|NMN|NMN,Nicotinamide Mononucleotide,NAD+',
+  '輔酶Q10|コエンザイムQ10|코엔자임Q10|CoQ10,Coenzyme Q10,Ubiquinol',
+  '靈芝|霊芝|영지버섯|Reishi,Ganoderma,Lingzhi',
+  '維生素C|ビタミンC|비타민C|Vitamin C,Ascorbic Acid',
+  '鋅|亜鉛|아연|Zinc,Zn',
+  '鎂|マグネシウム|마그네슘|Magnesium,Mg',
+  '葡萄糖胺|グルコサミン|글루코사민|Glucosamine,Chondroitin',
+  '白藜蘆醇|レスベラトロール|레스베라트롤|Resveratrol',
+  '葉酸|葉酸|엽산|Folic Acid,Folate,Vitamin B9',
+  '乳清蛋白|ホエイプロテイン|유청단백질|Whey Protein',
+];
+
+const DEFAULT_SOURCES = [
+  { name:'食藥署最新消息', url:'https://www.fda.gov.tw', region:'tw', type:'政府', login:'N', status:'ok' },
+  { name:'衛福部新聞稿', url:'https://www.mohw.gov.tw', region:'tw', type:'政府', login:'N', status:'ok' },
+  { name:'Nutraingredients-Asia', url:'https://www.nutraingredients-asia.com', region:'eu', type:'新聞', login:'Y', status:'ok' },
+  { name:'Natural Products Insider', url:'https://www.naturalproductsinsider.com', region:'us', type:'新聞', login:'Y', status:'ok' },
+  { name:'PubMed 保健食品', url:'https://pubmed.ncbi.nlm.nih.gov/?term=dietary+supplement', region:'us', type:'論文', login:'N', status:'ok' },
+  { name:'Health Food Business', url:'https://www.healthfoodbusiness.com', region:'eu', type:'雜誌', login:'N', status:'ok' },
+  { name:'日本健康産業新聞', url:'https://www.ken-san.com', region:'jp', type:'新聞', login:'N', status:'ok' },
+  { name:'J-STAGE 健康食品', url:'https://www.jstage.jst.go.jp', region:'jp', type:'論文', login:'N', status:'ok' },
+  { name:'中國保健食品協會', url:'http://www.chfa.com.cn', region:'cn', type:'協會', login:'N', status:'ok' },
+  { name:'韓國健康機能食品協會', url:'https://www.khff.or.kr', region:'kr', type:'協會', login:'N', status:'ok' },
+  { name:'EFSA 歐洲食安局', url:'https://www.efsa.europa.eu/en/topics/topic/food-supplements', region:'eu', type:'政府', login:'N', status:'ok' },
+  { name:'NIH Dietary Supplements', url:'https://ods.od.nih.gov', region:'us', type:'政府', login:'N', status:'ok' },
+];
+
+let S = {
+  news: LS.get('news') || [],
+  kwCounts: LS.get('kwCounts') || {},
+  sources: LS.get('sources') || DEFAULT_SOURCES,
+  accounts: LS.get('accounts') || [],
+  emails: LS.get('emails') || '',
+  keywords: LS.get('keywords') || DEFAULT_KEYWORDS,
+  currentUser: '',
+  isAdmin: false,
+};
+
+// ════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════
+function doLogin() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value;
+  if (USERS[u] && USERS[u] === p) {
+    S.currentUser = u;
+    S.isAdmin = (u === Object.keys(USERS)[0]);
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('u-nm').textContent = u;
+    document.getElementById('u-av').textContent = u[0].toUpperCase();
+    document.getElementById('today-dt').textContent =
+      new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+    initApp();
+  } else {
+    const e = document.getElementById('l-err');
+    e.style.display = 'block';
+    setTimeout(() => e.style.display = 'none', 3000);
+  }
+}
+document.getElementById('l-pass').addEventListener('keydown', e => e.key === 'Enter' && doLogin());
+document.getElementById('l-user').addEventListener('keydown', e => e.key === 'Enter' && document.getElementById('l-pass').focus());
+
+function doLogout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('l-pass').value = '';
+}
+
+// ════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════
+function nav(el) {
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  const pg = el.dataset.page;
+  document.getElementById('pg-' + pg).classList.add('on');
+  if (pg === 'keywords') { renderCloud('kw-cloud2'); renderSynTable(); renderKwEditor(); }
+  if (pg === 'sources')  { renderSources(); renderAccounts(); }
+  if (pg === 'email')    { renderEmailList(); buildEmailPreview(); }
+  if (pg === 'settings') { loadSettings(); }
+}
+
+function swTab(el, panelId) {
+  el.closest('.pg').querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  el.closest('.pg').querySelectorAll('.tab-pane').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById(panelId).classList.add('on');
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+function initApp() {
+  updateStats();
+  renderCloud('kw-cloud');
+  renderDashNews();
+  renderNewsPage();
+}
+
+function updateStats() {
+  document.getElementById('st-news').textContent = S.news.length || '—';
+  document.getElementById('st-papers').textContent = S.news.filter(n => n.type === 'paper').length || '—';
+  document.getElementById('st-kw').textContent = S.keywords.length;
+  const emails = S.emails.split('\n').filter(e => e.trim());
+  document.getElementById('st-em').textContent = emails.length || '—';
+}
+
+// ════════════════════════════════════════════
+// KEYWORD PROCESSING
+// ════════════════════════════════════════════
+const KW_COLORS = ['#00c9a7','#4da8f0','#f0b44d','#b48df0','#4df09a','#f06068','#79c0ff','#ffa657','#ff9ade','#39d353'];
+
+function parseKeywords() {
+  return S.keywords.map((line, i) => {
+    const parts = line.split('|');
+    return {
+      zh: parts[0] || '',
+      jp: parts[1] || '',
+      kr: parts[2] || '',
+      en: parts[3] || '',
+      all: parts.join('|'),
+      color: KW_COLORS[i % KW_COLORS.length],
+    };
+  });
+}
+
+function countKeywordsInText(text) {
+  const kws = parseKeywords();
+  const counts = {};
+  kws.forEach(kw => {
+    let c = 0;
+    // Build regex from all synonyms across all languages
+    const terms = [kw.zh, kw.jp, kw.kr, ...kw.en.split(',')].map(t => t.trim()).filter(Boolean);
+    terms.forEach(t => {
+      if (!t) return;
+      const re = new RegExp(escapeRe(t), 'gi');
+      const m = text.match(re);
+      if (m) c += m.length;
+    });
+    counts[kw.zh] = (S.kwCounts[kw.zh] || 0) + c;
+  });
+  return counts;
+}
+
+function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function renderCloud(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const kws = parseKeywords();
+  if (!kws.length) { el.innerHTML = '<div style="color:var(--t2);width:100%;text-align:center;padding:2rem 0">尚無關鍵字</div>'; return; }
+  const maxCount = Math.max(...kws.map(k => S.kwCounts[k.zh] || 1), 1);
+  el.innerHTML = kws.sort((a, b) => (S.kwCounts[b.zh] || 0) - (S.kwCounts[a.zh] || 0))
+    .map(k => {
+      const cnt = S.kwCounts[k.zh] || 0;
+      const size = (0.85 + (cnt / maxCount) * 2.1).toFixed(2);
+      const tip = `${k.en.split(',')[0].trim()} | ${k.jp} | ${cnt} 次`;
+      return `<span class="kw" style="font-size:${size}rem;color:${k.color}" title="${tip}">${k.zh}<sup>${cnt}</sup></span>`;
+    }).join('');
+}
+
+function renderSynTable() {
+  const kws = parseKeywords();
+  document.getElementById('syn-tbody').innerHTML = kws.map(k => `
+    <tr>
+      <td style="color:${k.color};font-weight:600">${k.zh}</td>
+      <td style="color:var(--t1)">${k.jp || '—'}</td>
+      <td style="color:var(--t1)">${k.kr || '—'}</td>
+      <td style="color:var(--t2);font-size:.76rem">${k.en || '—'}</td>
+      <td><span style="color:var(--t2);font-size:.72rem">—</span></td>
+      <td style="color:var(--am);font-family:var(--mono);font-weight:600">${S.kwCounts[k.zh] || 0}</td>
+    </tr>`).join('');
+}
+
+function renderKwEditor() {
+  document.getElementById('kw-editor').value = S.keywords.join('\n');
+}
+
+function saveKeywords() {
+  const lines = document.getElementById('kw-editor').value
+    .split('\n').map(l => l.trim()).filter(Boolean);
+  S.keywords = lines;
+  LS.set('keywords', lines);
+  renderCloud('kw-cloud');
+  renderCloud('kw-cloud2');
+  renderSynTable();
+  updateStats();
+  toast('✓ 關鍵字已儲存（' + lines.length + ' 項）');
+}
+
+function resetDefaultKw() {
+  document.getElementById('kw-editor').value = DEFAULT_KEYWORDS.join('\n');
+  toast('已還原預設關鍵字（未儲存）');
+}
+
+function syncKwFromSheet() {
+  const gas = (LS.get('settings') || {}).gasUrl;
+  if (!gas) { toast('⚠ 請先在設定頁填入 Apps Script URL'); return; }
+  fetchGAS(gas, 'getKeywords').then(data => {
+    if (data && data.data) {
+      // data.data: [{zh,jp,kr,en,...}, ...]
+      const lines = data.data.map(k => [k['中文']||k.zh||'', k['日文']||k.jp||'', k['韓文']||k.kr||'', k['英文']||k.en||''].join('|'));
+      S.keywords = lines;
+      LS.set('keywords', lines);
+      document.getElementById('kw-editor').value = lines.join('\n');
+      renderCloud('kw-cloud');
+      renderCloud('kw-cloud2');
+      updateStats();
+      toast('✓ 已從 Google Sheet 同步 ' + lines.length + ' 個關鍵字');
+    }
+  }).catch(() => toast('✗ 同步失敗，請確認 Apps Script URL 設定'));
+}
+
+// ════════════════════════════════════════════
+// NEWS RENDER
+// ════════════════════════════════════════════
+const REGION_LABEL = { tw:'🇹🇼 台灣', jp:'🇯🇵 日本', cn:'🇨🇳 中國', kr:'🇰🇷 韓國', eu:'🇪🇺 歐洲', us:'🇺🇸 美國' };
+const TYPE_LABEL   = { news:'📰 新聞', paper:'📄 論文', magazine:'📖 雜誌', blog:'✍ 部落格' };
+
+function renderDashNews() {
+  const grid = document.getElementById('dash-grid');
+  if (!S.news.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:span 2">
+      <div class="eico">◈</div>
+      <p>尚無資料<br>請點選「AI 自動更新」或使用「手動貼入內容」</p></div>`;
+    return;
+  }
+  grid.innerHTML = S.news.slice(0, 8).map((n, i) => newsCard(n, i, 'S.news')).join('');
+}
+
+function renderNewsPage() {
+  const f_r = document.getElementById('f-region')?.value || '';
+  const f_t = document.getElementById('f-type')?.value || '';
+  let arr = S.news;
+  if (f_r) arr = arr.filter(n => n.region === f_r);
+  if (f_t) arr = arr.filter(n => n.type === f_t);
+  document.getElementById('news-grid').innerHTML = arr.length
+    ? arr.map((n, i) => newsCard(n, i, 'S.news')).join('')
+    : `<div class="empty" style="grid-column:span 2"><div class="eico">◈</div><p>此篩選條件無結果</p></div>`;
+  const c = document.getElementById('f-count');
+  if (c) c.textContent = `共 ${arr.length} 則`;
+}
+
+function filterNews() { renderNewsPage(); }
+
+function newsCard(n, i, _src) {
+  const tags = (n.tags || []).map(t => `<span class="ntag">${t}</span>`).join('');
+  return `<div class="ncard" onclick="openNews(${i})">
+    <div class="ncard-top">
+      <span class="bde ${n.region}">${REGION_LABEL[n.region] || n.region}</span>
+      <span class="bde tp-${n.type}">${TYPE_LABEL[n.type] || n.type}</span>
+    </div>
+    <h3>${n.title}</h3>
+    <p>${n.summary}</p>
+    <div class="ntags">${tags}</div>
+    <div class="ncard-foot">
+      <span class="nsrc">來源：<a href="${n.sourceUrl||'#'}" target="_blank" onclick="event.stopPropagation()" rel="noopener">${n.source}</a></span>
+      <span class="ndate">${n.date || ''}</span>
+    </div>
+  </div>`;
+}
+
+function openNews(i) {
+  const n = S.news[i]; if (!n) return;
+  document.getElementById('m-title').textContent = n.title;
+  const tags = (n.tags || []).map(t => `<span class="ntag">${t}</span>`).join('');
+  document.getElementById('m-body').innerHTML = `
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem">
+      <span class="bde ${n.region}">${REGION_LABEL[n.region]||n.region}</span>
+      <span class="bde tp-${n.type}">${TYPE_LABEL[n.type]||n.type}</span>
+    </div>
+    <p style="margin-bottom:.9rem;line-height:1.7">${n.summary}</p>
+    ${n.detail ? `<p style="margin-bottom:.9rem;line-height:1.7;color:var(--t0)">${n.detail}</p>` : ''}
+    <div style="display:flex;gap:.3rem;flex-wrap:wrap">${tags}</div>`;
+  document.getElementById('m-src').href = n.sourceUrl || '#';
+  document.getElementById('m-date').textContent = n.date || '';
+  document.getElementById('news-ov').classList.add('open');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.ov').forEach(ov => ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); }));
+
+// ════════════════════════════════════════════
+// AI FETCH & SUMMARIZE
+// ════════════════════════════════════════════
+async function fetchAndSummarize() {
+  const cfg = LS.get('settings') || {};
+  const apiKey = cfg.claudeKey || '';
+  if (!apiKey) { toast('⚠ 請先在「系統設定」填入 Claude API Key'); return; }
+
+  const btn = document.getElementById('btn-fetch');
+  btn.disabled = true;
+  btn.textContent = '… 處理中';
+  setProgress(10);
+
+  const kwList = parseKeywords();
+  const kwStr = kwList.map(k => `${k.zh}（${k.en.split(',')[0].trim()}）`).join('、');
+  const count = cfg.newsCount || 10;
+  const lang = cfg.lang || 'zh-TW';
+
+  const today = new Date().toLocaleDateString('zh-TW');
+  const prompt = `你是保健食品產業資深分析師。今天是 ${today}。
+請針對以下關鍵字，搜尋並整理最新（2024-2025）保健食品產業重要資訊 ${count} 則，
+涵蓋台灣、日本、中國、韓國、歐洲、美國，類型包含新聞、學術論文、雜誌、官方公告。
+
+監測關鍵字：${kwStr}
+
+每則請依此 JSON 格式回覆：
+{
+  "title": "標題（${lang === 'zh-TW' ? '繁體中文' : lang === 'zh-CN' ? '簡體中文' : 'English'}）",
+  "summary": "2至3句重點摘要，說明主要發現或意義",
+  "detail": "更詳細的說明（3至5句）",
+  "region": "tw/jp/cn/kr/eu/us 其中之一",
+  "type": "news/paper/magazine/blog 其中之一",
+  "source": "來源媒體或期刊名稱",
+  "sourceUrl": "最可能的原文網址（盡量精確）",
+  "date": "YYYY-MM-DD 格式",
+  "tags": ["相關關鍵字1","關鍵字2","關鍵字3"]
+}
+
+回傳一個 JSON 陣列，不加任何說明文字或 markdown 符號，直接輸出 JSON。`;
+
+  try {
+    setProgress(30);
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    setProgress(70);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = (data.content || []).find(b => b.type === 'text')?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const arr = JSON.parse(clean);
+    setProgress(90);
+    S.news = arr;
+    LS.set('news', arr);
+    // update keyword counts from news text
+    const fullText = arr.map(n => n.title + ' ' + n.summary + ' ' + n.detail + ' ' + (n.tags||[]).join(' ')).join(' ');
+    S.kwCounts = countKeywordsInText(fullText);
+    LS.set('kwCounts', S.kwCounts);
+    updateStats();
+    renderCloud('kw-cloud');
+    renderDashNews();
+    renderNewsPage();
+    buildEmailPreview();
+    setProgress(100);
+    toast('✓ 已取得並摘要 ' + arr.length + ' 則最新資訊');
+  } catch (e) {
+    console.error(e);
+    toast('✗ AI 摘要失敗：' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '↻ AI 自動更新';
+    setTimeout(() => setProgress(0), 800);
+  }
+}
+
+function setProgress(pct) {
+  const wrap = document.getElementById('prog-wrap');
+  const bar = document.getElementById('prog-bar');
+  if (pct <= 0) { wrap.style.display = 'none'; bar.style.width = '0%'; return; }
+  wrap.style.display = 'block';
+  bar.style.width = pct + '%';
+}
+
+// ════════════════════════════════════════════
+// MANUAL PASTE SUMMARIZE
+// ════════════════════════════════════════════
+function openManual() { document.getElementById('manual-ov').classList.add('open'); }
+function updateCharCount() {
+  const v = document.getElementById('m-content').value;
+  document.getElementById('char-count').textContent = v.length.toLocaleString() + ' 字';
+}
+
+async function manualSummarize() {
+  const cfg = LS.get('settings') || {};
+  const apiKey = cfg.claudeKey || '';
+  if (!apiKey) { toast('⚠ 請先設定 Claude API Key'); return; }
+  const content = document.getElementById('m-content').value.trim();
+  if (!content) { toast('⚠ 請先貼入內容'); return; }
+
+  const srcName   = document.getElementById('m-src-name').value.trim() || '手動輸入';
+  const srcUrl    = document.getElementById('m-src-url').value.trim() || '#';
+  const srcRegion = document.getElementById('m-src-region').value;
+  const srcType   = document.getElementById('m-src-type').value;
+
+  const btn = document.getElementById('btn-manual-sum');
+  btn.disabled = true; btn.textContent = '… 摘要中';
+
+  const kwStr = parseKeywords().map(k => k.zh).join('、');
+  const prompt = `你是保健食品產業資深分析師。以下是一篇原文內容，請幫我摘要整理。
+
+原文：
+${content.slice(0, 6000)}
+
+請依此 JSON 格式回覆（單一物件，非陣列）：
+{
+  "title": "精簡有力的標題（繁體中文，20字內）",
+  "summary": "2至3句核心重點，說明主要發現或意義",
+  "detail": "更完整的內容說明（4至6句）",
+  "tags": ["相關保健食品關鍵字1","關鍵字2","關鍵字3"]
+}
+
+優先抽取與以下關鍵字相關的資訊：${kwStr}
+直接輸出 JSON，不加任何說明文字。`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = (data.content || []).find(b => b.type === 'text')?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const item = JSON.parse(clean);
+    const newItem = {
+      ...item,
+      region: srcRegion,
+      type: srcType,
+      source: srcName,
+      sourceUrl: srcUrl,
+      date: new Date().toISOString().split('T')[0],
+    };
+    S.news.unshift(newItem);
+    LS.set('news', S.news);
+    // Update keyword counts
+    const txt = newItem.title + ' ' + newItem.summary + ' ' + newItem.detail + ' ' + (newItem.tags||[]).join(' ');
+    const addCounts = countKeywordsInText(txt);
+    Object.entries(addCounts).forEach(([k, v]) => S.kwCounts[k] = (S.kwCounts[k] || 0) + v);
+    LS.set('kwCounts', S.kwCounts);
+    updateStats();
+    renderCloud('kw-cloud');
+    renderDashNews();
+    renderNewsPage();
+    closeModal('manual-ov');
+    document.getElementById('m-content').value = '';
+    document.getElementById('char-count').textContent = '0 字';
+    toast('✓ 摘要完成，已加入今日情報');
+  } catch (e) {
+    console.error(e);
+    toast('✗ 摘要失敗：' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ AI 摘要此內容';
+  }
+}
+
+// ════════════════════════════════════════════
+// SOURCES
+// ════════════════════════════════════════════
+function renderSources() {
+  document.getElementById('src-tbody').innerHTML = S.sources.map((s, i) => `
+    <tr>
+      <td style="font-weight:500">${s.name}</td>
+      <td><a href="${s.url}" target="_blank" rel="noopener" style="font-size:.75rem">${s.url}</a></td>
+      <td><span class="bde ${s.region}">${REGION_LABEL[s.region]||s.region}</span></td>
+      <td style="color:var(--t1)">${s.type}</td>
+      <td>${s.login==='Y'?'<span style="color:var(--am)">需要</span>':'<span style="color:var(--t2)">不需</span>'}</td>
+      <td><span class="dot dot-${s.status==='ok'?'g':s.status==='warn'?'a':'r'}"></span>${s.status==='ok'?'正常':s.status==='warn'?'待確認':'錯誤'}</td>
+      <td><button class="btn sm" onclick="removeSrc(${i})">移除</button></td>
+    </tr>`).join('');
+}
+
+function removeSrc(i) {
+  S.sources.splice(i, 1);
+  LS.set('sources', S.sources);
+  renderSources();
+  toast('已移除');
+}
+
+function addSourcePrompt() {
+  const name   = prompt('來源名稱：'); if (!name) return;
+  const url    = prompt('網址（含 https://）：'); if (!url) return;
+  const region = prompt('地區 (tw/jp/cn/kr/eu/us)：') || 'tw';
+  const type   = prompt('類型（新聞/論文/雜誌/部落格/政府/協會）：') || '新聞';
+  const login  = prompt('需要登入？(Y/N)：') || 'N';
+  S.sources.push({ name, url, region, type, login: login.toUpperCase(), status: 'ok' });
+  LS.set('sources', S.sources);
+  renderSources();
+  // also push to Sheet if gas url available
+  const gas = (LS.get('settings')||{}).gasUrl;
+  if (gas) postGAS(gas, { action:'addWebsite', data:{ name, url, region, type, needLogin:login } });
+  toast('✓ 已新增：' + name);
+}
+
+// ════════════════════════════════════════════
+// ACCOUNTS (from accounts sheet: URL|帳號|密碼|中文姓名|英文姓名|email|角色|建立日期)
+// ════════════════════════════════════════════
+function renderAccounts() {
+  const tbody = document.getElementById('acc-tbody');
+  if (!S.accounts.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--t2);padding:1.5rem">
+      尚未同步帳號資料 — 請點選「從 Google Sheet 同步帳號資料」</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = S.accounts.map(a => `
+    <tr>
+      <td style="font-size:.76rem;color:var(--bl)">${a.url||'—'}</td>
+      <td>${a.account||'—'}</td>
+      <td>${a.nameZh||'—'}</td>
+      <td style="color:var(--t1)">${a.nameEn||'—'}</td>
+      <td style="font-size:.76rem">${a.email||'—'}</td>
+      <td><span class="bde" style="background:var(--gbg);color:var(--g)">${a.role||'—'}</span></td>
+      <td style="font-family:var(--mono);font-size:.72rem;color:var(--t2)">${a.createdAt||'—'}</td>
+    </tr>`).join('');
+}
+
+function syncAccounts() {
+  const cfg = LS.get('settings') || {};
+  if (!cfg.gasUrl) { toast('⚠ 請先設定 Apps Script URL'); return; }
+  toast('⇅ 同步中...');
+  fetchGAS(cfg.gasUrl, 'getAccounts').then(data => {
+    if (data && data.data && Array.isArray(data.data)) {
+      // Map columns: data.data items have keys matching GAS output
+      // GAS maps: col A=url, B=account, C=password(hidden), D=nameZh, E=nameEn, F=email, G=role, H=createdAt
+      S.accounts = data.data;
+      LS.set('accounts', data.data);
+      renderAccounts();
+      toast('✓ 已同步 ' + data.data.length + ' 筆帳號資料');
+    } else {
+      toast('✗ 同步失敗或無資料');
+    }
+  }).catch(() => toast('✗ 無法連線 Apps Script'));
+}
+
+// ════════════════════════════════════════════
+// EMAIL
+// ════════════════════════════════════════════
+function renderEmailList() {
+  document.getElementById('email-list').value = S.emails;
+}
+
+function saveEmails() {
+  S.emails = document.getElementById('email-list').value;
+  LS.set('emails', S.emails);
+  updateStats();
+  toast('✓ 收件者清單已儲存');
+}
+
+function syncEmailsFromSheet() {
+  const cfg = LS.get('settings') || {};
+  if (!cfg.gasUrl) { toast('⚠ 請先設定 Apps Script URL'); return; }
+  fetchGAS(cfg.gasUrl, 'getEmails').then(data => {
+    if (data && data.data) {
+      const emails = data.data.map(e => e['email'] || e['Email'] || e['EMAIL'] || '').filter(Boolean).join('\n');
+      S.emails = emails;
+      LS.set('emails', emails);
+      document.getElementById('email-list').value = emails;
+      updateStats();
+      toast('✓ 已同步 ' + data.data.length + ' 位收件者');
+    }
+  }).catch(() => toast('✗ 同步失敗'));
+}
+
+function buildEmailPreview() {
+  const today = new Date().toLocaleDateString('zh-TW');
+  const topNews = S.news.slice(0, 5).map((n, i) =>
+    `${i+1}. 【${REGION_LABEL[n.region]||n.region}｜${TYPE_LABEL[n.type]||n.type}】\n   ${n.title}\n   ${n.summary}\n   來源：${n.source}\n   ${n.sourceUrl||''}\n`
+  ).join('\n');
+  const kwTop = parseKeywords().sort((a,b)=>(S.kwCounts[b.zh]||0)-(S.kwCounts[a.zh]||0))
+    .slice(0,8).map(k => `${k.zh}(${S.kwCounts[k.zh]||0})`).join('  ');
+  const prev = `主旨：保健食品情報日報 ${today}
+
+敬啟者：
+
+以下為今日保健食品產業重點摘要，涵蓋台灣、日本、中韓、歐美最新動態。
+
+━━ 今日重點資訊 ━━━━━━━━━━━━━━━━━
+
+${topNews || '（今日尚無資料，請先執行 AI 自動更新）'}
+━━ 今日關鍵字熱度 ━━━━━━━━━━━━━━━━
+
+${kwTop || '—'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+本信件由「保健食品情報中心」自動產生。
+如需取消訂閱或調整設定，請聯絡系統管理員。`;
+  document.getElementById('eml-prev').textContent = prev;
+}
+
+function sendEmailNow() {
+  // In a static GitHub Pages site, email is sent via Apps Script or EmailJS
+  const cfg = LS.get('settings') || {};
+  if (!cfg.gasUrl) { toast('⚠ 請設定 Apps Script URL 以啟用 Email 寄送功能'); return; }
+  const emails = S.emails.split('\n').filter(e=>e.trim());
+  if (!emails.length) { toast('⚠ 請先設定收件者 Email'); return; }
+  const preview = document.getElementById('eml-prev').textContent;
+  postGAS(cfg.gasUrl, {
+    action: 'sendEmail',
+    data: { recipients: emails, subject: '保健食品情報日報 ' + new Date().toLocaleDateString('zh-TW'), body: preview }
+  }).then(r => {
+    if (r && r.status === 'ok') toast('✓ 摘要郵件已發送至 ' + emails.length + ' 位收件者');
+    else toast('✗ 發送失敗：' + (r && r.message || '未知錯誤'));
+  }).catch(() => toast('✗ 無法連線 Apps Script'));
+}
+
+// ════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════
+function loadSettings() {
+  const c = LS.get('settings') || {};
+  document.getElementById('cfg-gas').value   = c.gasUrl  || '';
+  document.getElementById('cfg-s1').value    = c.sheet1  || '';
+  document.getElementById('cfg-s2').value    = c.sheet2  || '';
+  document.getElementById('cfg-key').value   = c.claudeKey || '';
+  document.getElementById('cfg-lang').value  = c.lang    || 'zh-TW';
+  document.getElementById('cfg-count').value = c.newsCount || 10;
+  document.getElementById('cfg-usr').value   = Object.keys(USERS)[0] || 'admin';
+  document.getElementById('cfg-rusr').value  = Object.keys(USERS)[1] || 'viewer';
+}
+
+function saveSettings() {
+  const cfg = {
+    gasUrl:    document.getElementById('cfg-gas').value.trim(),
+    sheet1:    document.getElementById('cfg-s1').value.trim(),
+    sheet2:    document.getElementById('cfg-s2').value.trim(),
+    claudeKey: document.getElementById('cfg-key').value.trim(),
+    lang:      document.getElementById('cfg-lang').value,
+    newsCount: parseInt(document.getElementById('cfg-count').value) || 10,
+  };
+  LS.set('settings', cfg);
+  // Update user accounts if passwords provided
+  const admin = document.getElementById('cfg-usr').value.trim();
+  const adminPwd = document.getElementById('cfg-pwd').value;
+  const reader = document.getElementById('cfg-rusr').value.trim();
+  const readerPwd = document.getElementById('cfg-rpwd').value;
+  const newUsers = {};
+  newUsers[admin]  = adminPwd  || USERS[Object.keys(USERS)[0]] || 'Health2024!';
+  newUsers[reader] = readerPwd || USERS[Object.keys(USERS)[1]] || 'View2024!';
+  USERS = newUsers;
+  LS.set('users', USERS);
+  toast('✓ 設定已儲存');
+}
+
+// ════════════════════════════════════════════
+// GOOGLE APPS SCRIPT API HELPERS
+// ════════════════════════════════════════════
+async function fetchGAS(gasUrl, action, params = {}) {
+  const url = gasUrl + '?action=' + action + Object.entries(params).map(([k,v]) => '&'+k+'='+encodeURIComponent(v)).join('');
+  const res = await fetch(url);
+  return await res.json();
+}
+
+async function postGAS(gasUrl, body) {
+  const res = await fetch(gasUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return await res.json();
+}
+
+// ════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════
+let _toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>
