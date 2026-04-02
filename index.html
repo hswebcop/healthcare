@@ -293,6 +293,7 @@ textarea.inp{resize:vertical;height:90px;font-family:var(--mono);font-size:.78re
     <div class="fg"><label>密碼</label><input id="l-pass" type="password" placeholder="password" autocomplete="current-password"></div>
     <button class="btn-login" onclick="doLogin()">登入系統</button>
     <div id="l-err">帳號或密碼錯誤，請重試</div>
+    <div class="l-hint">本地預設帳號：admin　密碼：Health2024!<br>設定 GAS URL 後可改用帳號密碼 Sheet 登入</div>
   </div>
 </div>
 
@@ -665,7 +666,7 @@ let S = {
 };
 
 // ════════════════════════════════════════════
-// AUTH — 登入直接比對帳號密碼 Sheet
+// AUTH
 // ════════════════════════════════════════════
 async function doLogin() {
   const u = document.getElementById('l-user').value.trim();
@@ -680,10 +681,10 @@ async function doLogin() {
   const gasUrl = cfg.gasUrl || '';
 
   let verified = false;
-  let userInfo = { account: u, nameZh: '', role: '' };
+  let userInfo = { account: u, nameZh: u, role: 'admin' };
 
+  // Step 1：嘗試透過 GAS 比對帳號密碼 Sheet
   if (gasUrl) {
-    // ✅ 透過 Apps Script 直接比對帳號密碼 Sheet
     try {
       const url = gasUrl + '?action=login&u=' + encodeURIComponent(u) + '&p=' + encodeURIComponent(p);
       const res = await fetch(url);
@@ -691,22 +692,19 @@ async function doLogin() {
       if (data.status === 'ok') {
         verified = true;
         userInfo = data.user || userInfo;
-      } else {
-        showLoginErr(data.message || '帳號或密碼錯誤');
-        btn.disabled = false; btn.textContent = '登入系統';
-        return;
       }
+      // GAS 回傳 error（帳號不符）→ 繼續往下用本地帳號驗證
     } catch(e) {
-      // GAS 無法連線時，fallback 到本地帳號
-      console.warn('GAS 驗證失敗，使用本地帳號：', e.message);
-      if (USERS[u] && USERS[u] === p) {
-        verified = true;
-      }
+      // 網路錯誤 → 繼續往下用本地帳號驗證
+      console.warn('GAS 登入連線失敗，使用本地帳號驗證');
     }
-  } else {
-    // 尚未設定 GAS URL，使用本地預設帳號
+  }
+
+  // Step 2：若 GAS 未驗證成功，用本地帳號驗證（預設 admin / Health2024!）
+  if (!verified) {
     if (USERS[u] && USERS[u] === p) {
       verified = true;
+      userInfo = { account: u, nameZh: u, role: u === Object.keys(USERS)[0] ? 'admin' : 'viewer' };
     }
   }
 
@@ -715,15 +713,14 @@ async function doLogin() {
 
   if (verified) {
     S.currentUser = u;
-    S.currentUserInfo = userInfo;
-    S.isAdmin = (userInfo.role || '').includes('admin') || u === Object.keys(USERS)[0];
+    S.isAdmin = (userInfo.role || '').toLowerCase().includes('admin');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     const displayName = userInfo.nameZh || u;
     document.getElementById('u-nm').textContent = displayName;
     document.getElementById('u-av').textContent = displayName[0].toUpperCase();
     document.getElementById('today-dt').textContent =
-      new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+      new Date().toLocaleDateString('zh-TW', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
     initApp();
   } else {
     showLoginErr('帳號或密碼錯誤');
