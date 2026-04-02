@@ -294,10 +294,8 @@ textarea.inp{resize:vertical;height:90px;font-family:var(--mono);font-size:.78re
     <button class="btn-login" onclick="doLogin()">登入系統</button>
     <div id="l-err">帳號或密碼錯誤，請重試</div>
     <div class="l-hint">
-      預設帳號：admin　密碼：Health2024!<br>
-      <span onclick="clearAndReload()" style="cursor:pointer;text-decoration:underline;color:var(--t2)">
-        若仍無法登入，點此清除快取重試
-      </span>
+      帳號密碼請參照 Users Sheet<br>
+      <span onclick="clearAndReload()" style="cursor:pointer;text-decoration:underline;color:var(--t2)">若無法登入，點此清除快取重試</span>
     </div>
   </div>
 </div>
@@ -624,10 +622,9 @@ const LS = {
   clear: k => localStorage.removeItem(APP_KEY+'_'+k),
 };
 
-// 預設帳號永遠有效，localStorage 只用來存自訂帳號（若有設定才覆蓋）
-const DEFAULT_USERS = { admin: 'Health2024!', viewer: 'View2024!' };
+// 預設帳號 — 密碼與 Users Sheet 一致
+const DEFAULT_USERS = { admin: 'admin123', viewer: 'View2024!' };
 const CUSTOM_USERS  = LS.get('users') || {};
-// 合併：預設帳號 + 自訂帳號（自訂優先）
 let USERS = Object.assign({}, DEFAULT_USERS, CUSTOM_USERS);
 
 // Default keyword list: zh|jp|kr|en
@@ -690,39 +687,37 @@ async function doLogin() {
   let verified = false;
   let displayName = u;
 
-  // ── Step 1：本地帳號驗證（永遠先跑，最可靠）
-  console.log('[Login] 嘗試本地驗證，帳號：', u);
-  console.log('[Login] 可用帳號：', Object.keys(USERS));
-  if (USERS[u] !== undefined) {
-    if (USERS[u] === p) {
+  const cfg = LS.get('settings') || {};
+  const gasUrl = cfg.gasUrl || '';
+
+  // ── Step 1：優先用 GAS 帳號密碼 Sheet 驗證
+  if (gasUrl) {
+    console.log('[Login] 嘗試 GAS 驗證，帳號：', u);
+    try {
+      const url = gasUrl + '?action=login&u=' + encodeURIComponent(u) + '&p=' + encodeURIComponent(p);
+      const res = await fetch(url);
+      const data = await res.json();
+      console.log('[Login] GAS 回應：', data);
+      if (data.status === 'ok') {
+        verified = true;
+        displayName = (data.user && data.user.nameZh) || u;
+        console.log('[Login] GAS 驗證成功');
+      } else {
+        console.log('[Login] GAS 驗證失敗：', data.message);
+      }
+    } catch(e) {
+      console.warn('[Login] GAS 連線失敗，改用本地驗證：', e.message);
+    }
+  }
+
+  // ── Step 2：GAS 失敗或未設定，用本地帳號驗證
+  if (!verified) {
+    console.log('[Login] 本地驗證，帳號：', u, '可用帳號：', Object.keys(USERS));
+    if (USERS[u] !== undefined && USERS[u] === p) {
       verified = true;
       console.log('[Login] 本地驗證成功');
     } else {
-      console.log('[Login] 密碼不符，輸入：', p, '期望：', USERS[u]);
-    }
-  } else {
-    console.log('[Login] 找不到此帳號');
-  }
-
-  // ── Step 2：若本地驗證失敗，嘗試 GAS 帳號密碼 Sheet
-  if (!verified) {
-    const cfg = LS.get('settings') || {};
-    const gasUrl = cfg.gasUrl || '';
-    if (gasUrl) {
-      console.log('[Login] 嘗試 GAS 驗證...');
-      try {
-        const url = gasUrl + '?action=login&u=' + encodeURIComponent(u) + '&p=' + encodeURIComponent(p);
-        const res = await fetch(url);
-        const data = await res.json();
-        console.log('[Login] GAS 回應：', data);
-        if (data.status === 'ok') {
-          verified = true;
-          displayName = (data.user && data.user.nameZh) || u;
-          console.log('[Login] GAS 驗證成功');
-        }
-      } catch(e) {
-        console.warn('[Login] GAS 連線失敗：', e.message);
-      }
+      console.log('[Login] 本地驗證失敗');
     }
   }
 
