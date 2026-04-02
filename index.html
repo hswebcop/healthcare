@@ -293,7 +293,12 @@ textarea.inp{resize:vertical;height:90px;font-family:var(--mono);font-size:.78re
     <div class="fg"><label>密碼</label><input id="l-pass" type="password" placeholder="password" autocomplete="current-password"></div>
     <button class="btn-login" onclick="doLogin()">登入系統</button>
     <div id="l-err">帳號或密碼錯誤，請重試</div>
-    <div class="l-hint">本地預設帳號：admin　密碼：Health2024!<br>設定 GAS URL 後可改用帳號密碼 Sheet 登入</div>
+    <div class="l-hint">
+      預設帳號：admin　密碼：Health2024!<br>
+      <span onclick="clearAndReload()" style="cursor:pointer;text-decoration:underline;color:var(--t2)">
+        若仍無法登入，點此清除快取重試
+      </span>
+    </div>
   </div>
 </div>
 
@@ -615,10 +620,14 @@ const APP_KEY = 'hih_v2';
 const LS = {
   get: k => { try { return JSON.parse(localStorage.getItem(APP_KEY+'_'+k)); } catch(e){ return null; } },
   set: (k, v) => localStorage.setItem(APP_KEY+'_'+k, JSON.stringify(v)),
+  clear: k => localStorage.removeItem(APP_KEY+'_'+k),
 };
 
-// Default users (overridable via settings)
-let USERS = LS.get('users') || { admin: 'Health2024!', viewer: 'View2024!' };
+// 預設帳號永遠有效，localStorage 只用來存自訂帳號（若有設定才覆蓋）
+const DEFAULT_USERS = { admin: 'Health2024!', viewer: 'View2024!' };
+const CUSTOM_USERS  = LS.get('users') || {};
+// 合併：預設帳號 + 自訂帳號（自訂優先）
+let USERS = Object.assign({}, DEFAULT_USERS, CUSTOM_USERS);
 
 // Default keyword list: zh|jp|kr|en
 const DEFAULT_KEYWORDS = [
@@ -677,34 +686,42 @@ async function doLogin() {
   btn.disabled = true;
   btn.textContent = '驗證中…';
 
-  const cfg = LS.get('settings') || {};
-  const gasUrl = cfg.gasUrl || '';
-
   let verified = false;
-  let userInfo = { account: u, nameZh: u, role: 'admin' };
+  let displayName = u;
 
-  // Step 1：嘗試透過 GAS 比對帳號密碼 Sheet
-  if (gasUrl) {
-    try {
-      const url = gasUrl + '?action=login&u=' + encodeURIComponent(u) + '&p=' + encodeURIComponent(p);
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.status === 'ok') {
-        verified = true;
-        userInfo = data.user || userInfo;
-      }
-      // GAS 回傳 error（帳號不符）→ 繼續往下用本地帳號驗證
-    } catch(e) {
-      // 網路錯誤 → 繼續往下用本地帳號驗證
-      console.warn('GAS 登入連線失敗，使用本地帳號驗證');
+  // ── Step 1：本地帳號驗證（永遠先跑，最可靠）
+  console.log('[Login] 嘗試本地驗證，帳號：', u);
+  console.log('[Login] 可用帳號：', Object.keys(USERS));
+  if (USERS[u] !== undefined) {
+    if (USERS[u] === p) {
+      verified = true;
+      console.log('[Login] 本地驗證成功');
+    } else {
+      console.log('[Login] 密碼不符，輸入：', p, '期望：', USERS[u]);
     }
+  } else {
+    console.log('[Login] 找不到此帳號');
   }
 
-  // Step 2：若 GAS 未驗證成功，用本地帳號驗證（預設 admin / Health2024!）
+  // ── Step 2：若本地驗證失敗，嘗試 GAS 帳號密碼 Sheet
   if (!verified) {
-    if (USERS[u] && USERS[u] === p) {
-      verified = true;
-      userInfo = { account: u, nameZh: u, role: u === Object.keys(USERS)[0] ? 'admin' : 'viewer' };
+    const cfg = LS.get('settings') || {};
+    const gasUrl = cfg.gasUrl || '';
+    if (gasUrl) {
+      console.log('[Login] 嘗試 GAS 驗證...');
+      try {
+        const url = gasUrl + '?action=login&u=' + encodeURIComponent(u) + '&p=' + encodeURIComponent(p);
+        const res = await fetch(url);
+        const data = await res.json();
+        console.log('[Login] GAS 回應：', data);
+        if (data.status === 'ok') {
+          verified = true;
+          displayName = (data.user && data.user.nameZh) || u;
+          console.log('[Login] GAS 驗證成功');
+        }
+      } catch(e) {
+        console.warn('[Login] GAS 連線失敗：', e.message);
+      }
     }
   }
 
@@ -713,10 +730,8 @@ async function doLogin() {
 
   if (verified) {
     S.currentUser = u;
-    S.isAdmin = (userInfo.role || '').toLowerCase().includes('admin');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    const displayName = userInfo.nameZh || u;
     document.getElementById('u-nm').textContent = displayName;
     document.getElementById('u-av').textContent = displayName[0].toUpperCase();
     document.getElementById('today-dt').textContent =
@@ -732,6 +747,16 @@ function showLoginErr(msg) {
   e.textContent = msg;
   e.style.display = 'block';
   setTimeout(() => e.style.display = 'none', 3500);
+}
+
+// 清除所有本地儲存並重新載入（解決舊資料污染問題）
+function clearAndReload() {
+  if (confirm('清除所有本地快取？（設定、新聞等資料將重設，不影響 Google Sheet）')) {
+    Object.keys(localStorage)
+      .filter(k => k.startsWith(APP_KEY))
+      .forEach(k => localStorage.removeItem(k));
+    location.reload();
+  }
 }
 
 document.getElementById('l-pass').addEventListener('keydown', e => e.key === 'Enter' && doLogin());
