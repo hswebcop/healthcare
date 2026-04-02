@@ -505,9 +505,10 @@ textarea.inp{resize:vertical;height:90px;font-family:var(--mono);font-size:.78re
         </div>
       </div>
       <div class="panel">
-        <h3>Claude API 設定</h3>
-        <p class="desc">⚠️ Claude API Key 請填入 <strong>Apps Script</strong> 中（執行 <code>saveApiKey()</code>），<br>
-        不存於瀏覽器，更安全。此處僅設定摘要參數。</p>
+        <h3>Gemini API 設定</h3>
+        <p class="desc">使用 Google Gemini API 進行 AI 摘要（免費額度充足）。<br>
+        Key 儲存於 Apps Script Script Properties，更安全。<br>
+        取得方式：前往 <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> → 建立 API Key → 在 Apps Script 執行 <code>saveGeminiKey()</code></p>
         <div class="irow">
           <div class="irow-l"><div class="lbl">摘要語言</div><div class="hint">AI 輸出的語言</div></div>
           <select class="inp" id="cfg-lang" style="width:270px">
