@@ -340,7 +340,8 @@ textarea.inp{resize:vertical;height:90px;font-family:var(--mono);font-size:.78re
         </div>
         <div class="tbar-r">
           <button class="btn" onclick="sendEmailNow()">⊠ 發送今日摘要</button>
-          <button class="btn primary" id="btn-fetch" onclick="fetchAndSummarize()">↻ AI 自動更新</button>
+          <button class="btn" onclick="fetchAndSummarize(false)" title="使用快取（省 API）">↻ AI 更新</button>
+          <button class="btn primary" id="btn-fetch" onclick="fetchAndSummarize(true)" title="強制重新呼叫 API">↻ 強制更新</button>
         </div>
       </div>
 
@@ -981,9 +982,9 @@ document.querySelectorAll('.ov').forEach(ov => ov.addEventListener('click', e =>
 
 // ════════════════════════════════════════════
 // AI FETCH & SUMMARIZE
-// 使用 GET + base64，完全避免 CORS 問題
+// GET + base64，無 CORS；含快取 + 重試（GAS 端處理）
 // ════════════════════════════════════════════
-async function fetchAndSummarize() {
+async function fetchAndSummarize(forceRefresh) {
   const cfg = LS.get('settings') || {};
   const gasUrl = cfg.gasUrl || '';
   if (!gasUrl) { toast('⚠ 請先在「系統設定」填入 Apps Script URL'); return; }
@@ -994,27 +995,24 @@ async function fetchAndSummarize() {
   setProgress(10);
 
   const kwList = parseKeywords();
-  const kwStr = kwList.map(k => `${k.zh}（${k.en.split(',')[0].trim()}）`).join('、');
-  const count = cfg.newsCount || 10;
+  // 精簡關鍵字字串，只取中文，減少 token
+  const kwStr = kwList.map(k => k.zh).join('、');
+  const count = Math.min(cfg.newsCount || 8, 8); // 最多 8 則，降低 token
   const lang = cfg.lang || 'zh-TW';
-  const today = new Date().toLocaleDateString('zh-TW');
+  const today = new Date().toISOString().split('T')[0];
 
-  const prompt = `你是保健食品產業資深分析師。今天是 ${today}。
-請針對以下關鍵字，整理最新（2024-2025）保健食品產業重要資訊 ${count} 則，
-涵蓋台灣、日本、中國、韓國、歐洲、美國，類型包含新聞、學術論文、雜誌、官方公告。
-
-監測關鍵字：${kwStr}
-
-每則請依此 JSON 格式：
-{"title":"標題（${lang==='zh-TW'?'繁體中文':lang==='zh-CN'?'簡體中文':'English'}）","summary":"2至3句重點摘要","detail":"3至5句詳細說明","region":"tw/jp/cn/kr/eu/us","type":"news/paper/magazine/blog","source":"來源名稱","sourceUrl":"原文網址","date":"YYYY-MM-DD","tags":["關鍵字1","關鍵字2","關鍵字3"]}
-
-回傳 JSON 陣列，不加任何說明文字或 markdown。`;
+  // 精簡 prompt，減少 input token
+  const prompt = `保健食品產業分析師。日期:${today}。
+針對關鍵字:${kwStr}
+整理最新保健食品資訊${count}則（台灣/日本/中國/韓國/歐洲/美國，含新聞/論文/雜誌）。
+每則JSON格式:{"title":"${lang==='zh-TW'?'繁體中文':'English'}標題","summary":"2句摘要","region":"tw/jp/cn/kr/eu/us","type":"news/paper/magazine/blog","source":"來源","sourceUrl":"網址","date":"${today}","tags":["標籤1","標籤2"]}
+只回傳JSON陣列，無其他文字。`;
 
   try {
     setProgress(30);
-    // ✅ 用 btoa + encodeURIComponent 編碼 prompt，透過 GET 傳送，完全無 CORS 問題
     const b64 = btoa(unescape(encodeURIComponent(prompt)));
-    const url = gasUrl + '?action=summarize&prompt=' + encodeURIComponent(b64) + '&maxTokens=4096';
+    const forceParam = forceRefresh ? '&force=1' : '';
+    const url = gasUrl + '?action=summarize&prompt=' + encodeURIComponent(b64) + '&maxTokens=2048' + forceParam;
     const res = await fetch(url);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     setProgress(70);
@@ -1026,7 +1024,7 @@ async function fetchAndSummarize() {
     S.news = arr;
     LS.set('news', arr);
     const fullText = arr.map(n =>
-      (n.title||'') + ' ' + (n.summary||'') + ' ' + (n.detail||'') + ' ' + (n.tags||[]).join(' ')
+      (n.title||'') + ' ' + (n.summary||'') + ' ' + (n.tags||[]).join(' ')
     ).join(' ');
     S.kwCounts = countKeywordsInText(fullText);
     LS.set('kwCounts', S.kwCounts);
@@ -1036,10 +1034,15 @@ async function fetchAndSummarize() {
     renderNewsPage();
     buildEmailPreview();
     setProgress(100);
-    toast('✓ 已取得並摘要 ' + arr.length + ' 則最新資訊');
+    toast('✓ 已取得 ' + arr.length + ' 則資訊');
   } catch (e) {
     console.error(e);
-    toast('✗ AI 摘要失敗：' + e.message);
+    // 超限錯誤給更明確提示
+    if (e.message.includes('quota') || e.message.includes('429') || e.message.includes('limit')) {
+      toast('⚠ API 用量已達上限，GAS 正在重試，請稍候 30 秒再試');
+    } else {
+      toast('✗ 摘要失敗：' + e.message);
+    }
   } finally {
     btn.disabled = false;
     btn.textContent = '↻ AI 自動更新';
