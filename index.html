@@ -1,1066 +1,209 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>保健食品情報中心</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg0:#07090d;--bg1:#0d1117;--bg2:#131920;--bg3:#1a2230;--bg4:#212d3d;
-  --bdr:#243040;--bdr2:#334455;
-  --t0:#ddeeff;--t1:#8aaabb;--t2:#4a6070;
-  --g:#00c9a7;--g2:#00a88b;--gbg:rgba(0,201,167,.1);
-  --bl:#4da8f0;--blbg:rgba(77,168,240,.1);
-  --am:#f0b44d;--ambg:rgba(240,180,77,.1);
-  --rd:#f06068;--rdbg:rgba(240,96,104,.1);
-  --pu:#b48df0;--pubg:rgba(180,141,240,.1);
-  --gr:#4df09a;--grbg:rgba(77,240,154,.1);
-  --font:'Noto Sans TC',system-ui,sans-serif;
-  --mono:'DM Mono',monospace;
-  --r:8px;--r2:12px;--r3:16px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:var(--font);background:var(--bg0);color:var(--t0)}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:var(--bg1)}
-::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
-a{color:var(--bl);text-decoration:none}
-a:hover{text-decoration:underline}
-body::before{content:'';position:fixed;inset:0;opacity:.015;
-  background-image:repeating-linear-gradient(0deg,#0ff 0,#0ff 1px,transparent 1px,transparent 40px),
-  repeating-linear-gradient(90deg,#0ff 0,#0ff 1px,transparent 1px,transparent 40px);
-  pointer-events:none;z-index:0}
-
-/* LOGIN */
-#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg0);z-index:900}
-.lcard{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r3);padding:2.5rem 2rem;width:380px}
-.l-logo{text-align:center;margin-bottom:2rem}
-.l-logo .chip{display:inline-flex;align-items:center;background:var(--gbg);border:1px solid rgba(0,201,167,.35);border-radius:20px;padding:.2rem .75rem;margin-bottom:.8rem}
-.l-logo .chip span{font-size:.62rem;color:var(--g);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase}
-.l-logo h1{font-size:1.2rem;font-weight:900}
-.fg{margin-bottom:1rem}
-.fg label{display:block;font-size:.68rem;color:var(--t2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.07em}
-.fg input,.fg select{width:100%;padding:.62rem .85rem;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);color:var(--t0);font-size:.9rem;font-family:var(--font);transition:border-color .2s}
-.fg input:focus,.fg select:focus{outline:none;border-color:var(--g)}
-.btn-login{width:100%;padding:.72rem;background:var(--g);border:none;border-radius:var(--r);color:#041a14;font-weight:700;font-size:.93rem;cursor:pointer;letter-spacing:.04em;font-family:var(--font)}
-.btn-login:hover{background:var(--g2)}
-#l-err{color:var(--rd);font-size:.78rem;margin-top:.6rem;text-align:center;display:none}
-.l-hint{font-size:.68rem;color:var(--t2);text-align:center;margin-top:.8rem;font-family:var(--mono)}
-.l-hint span{cursor:pointer;text-decoration:underline}
-
-/* SHELL */
-#app{display:none;position:relative;z-index:1}
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--bg1);border-right:1px solid var(--bdr);display:flex;flex-direction:column;z-index:100}
-.sb-brand{padding:1.2rem 1rem .9rem;border-bottom:1px solid var(--bdr)}
-.sb-brand .chip{display:inline-flex;background:var(--gbg);border:1px solid rgba(0,201,167,.3);border-radius:20px;padding:.18rem .6rem;margin-bottom:.5rem}
-.sb-brand .chip span{font-size:.58rem;color:var(--g);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase}
-.sb-brand h2{font-size:.98rem;font-weight:700;line-height:1.3}
-.sb-nav{flex:1;padding:.5rem 0;overflow-y:auto}
-.nav-sec{padding:.65rem 1rem .2rem;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--t2)}
-.ni{display:flex;align-items:center;gap:.55rem;padding:.5rem 1rem;cursor:pointer;font-size:.83rem;color:var(--t1);border-left:2px solid transparent;transition:all .15s}
-.ni:hover{color:var(--t0);background:var(--bg2)}
-.ni.on{color:var(--g);border-left-color:var(--g);background:var(--gbg)}
-.ni .ico{width:16px;text-align:center;font-style:normal;flex-shrink:0;font-size:.85rem}
-.sb-foot{padding:.8rem 1rem;border-top:1px solid var(--bdr)}
-.u-row{display:flex;align-items:center;gap:.5rem}
-.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--bl));display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#041a14;flex-shrink:0}
-.u-name{font-size:.78rem;color:var(--t1);flex:1}
-.btn-out{background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--t2);font-family:var(--font)}
-.btn-out:hover{color:var(--rd)}
-
-/* MAIN */
-.main{margin-left:220px;padding:1.6rem 1.8rem;min-height:100vh}
-.pg{display:none;animation:fi .22s ease}
-.pg.on{display:block}
-@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-
-/* TOPBAR */
-.tbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.4rem;gap:.8rem}
-.tbar-l h2{font-size:1.2rem;font-weight:700}
-.tbar-l .dt{font-size:.72rem;color:var(--t2);margin-top:.2rem;font-family:var(--mono)}
-.tbar-r{display:flex;gap:.45rem;flex-wrap:wrap;flex-shrink:0}
-
-/* BTN */
-.btn{padding:.4rem .85rem;border-radius:var(--r);font-size:.8rem;cursor:pointer;border:1px solid var(--bdr2);background:var(--bg3);color:var(--t1);transition:all .2s;font-family:var(--font);white-space:nowrap}
-.btn:hover{border-color:var(--g);color:var(--g)}
-.btn.p{background:var(--g);border-color:var(--g);color:#041a14;font-weight:700}
-.btn.p:hover{background:var(--g2)}
-.btn.warn{background:var(--rdbg);border-color:var(--rd);color:var(--rd)}
-.btn.warn:hover{background:var(--rd);color:#fff}
-.btn.sm{padding:.28rem .6rem;font-size:.73rem}
-.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
-
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:1.4rem}
-.sc{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r2);padding:.95rem 1.1rem;position:relative;overflow:hidden}
-.sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--cc,var(--g))}
-.sc-lbl{font-size:.68rem;color:var(--t2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.07em}
-.sc-val{font-size:1.75rem;font-weight:900;line-height:1;color:var(--cc,var(--g));font-family:var(--mono)}
-
-/* SECTION */
-.sh{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t2);margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem}
-.sh::after{content:'';flex:1;height:1px;background:var(--bdr)}
-
-/* KEYWORD CLOUD */
-.cloud-box{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r2);padding:1.2rem;margin-bottom:1.4rem;min-height:160px;position:relative}
-#kw-cloud{display:flex;flex-wrap:wrap;gap:.5rem .7rem;align-items:center;min-height:120px;padding:.2rem 0}
-.kw{cursor:pointer;font-weight:700;line-height:1;transition:opacity .2s}
-.kw:hover{opacity:.6}
-.kw sup{font-size:.52em;opacity:.55;font-family:var(--mono);margin-left:.1em}
-
-/* NEWS GRID */
-.ngrid{display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem;margin-bottom:1.4rem}
-.ncard{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r2);padding:1rem 1.1rem;cursor:pointer;transition:border-color .2s,transform .15s;display:flex;flex-direction:column}
-.ncard:hover{border-color:var(--g);transform:translateY(-2px)}
-.ncard-top{display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap}
-.ncard h3{font-size:.88rem;font-weight:600;line-height:1.45;margin-bottom:.5rem}
-.ncard p{font-size:.81rem;color:var(--t1);line-height:1.65;flex:1}
-.ncard-foot{display:flex;align-items:center;justify-content:space-between;margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--bdr)}
-.nsrc{font-size:.7rem;color:var(--t2)}
-.nsrc a{color:var(--bl)}
-.ndate{font-size:.68rem;color:var(--t2);font-family:var(--mono)}
-.ntags{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:.4rem}
-.ntag{padding:.08rem .4rem;border-radius:3px;font-size:.65rem;background:var(--bg3);color:var(--t2);border:1px solid var(--bdr)}
-
-/* ALERT CARD */
-.alert-card{background:var(--rdbg);border:1px solid var(--rd);border-radius:var(--r2);padding:.85rem 1rem;margin-bottom:.7rem}
-.alert-card .at{font-size:.72rem;font-weight:700;color:var(--rd);margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.06em}
-.alert-card p{font-size:.82rem;color:var(--t0);line-height:1.6}
-
-/* INSIGHT */
-.insight-box{background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r2);padding:1.1rem 1.2rem;margin-bottom:1.4rem}
-.insight-box .label{font-size:.68rem;color:var(--am);font-family:var(--mono);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem}
-.insight-box p{font-size:.85rem;color:var(--t0);line-height:1.7}
-.rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-top:.8rem}
-.rec-item{background:var(--bg3);border-radius:var(--r);padding:.7rem .9rem;border:1px solid var(--bdr)}
-.rec-item .role{font-size:.65rem;color:var(--am);font-weight:700;letter-spacing:.06em;margin-bottom:.3rem}
-.rec-item p{font-size:.8rem;color:var(--t1);line-height:1.5}
-
-/* BADGES */
-.bde{padding:.1rem .48rem;border-radius:4px;font-size:.66rem;font-weight:700;white-space:nowrap}
-.tw{background:rgba(77,168,240,.15);color:var(--bl)}
-.jp{background:rgba(180,141,240,.15);color:var(--pu)}
-.cn{background:rgba(240,96,104,.15);color:var(--rd)}
-.kr{background:rgba(77,240,154,.15);color:var(--gr)}
-.eu{background:rgba(240,180,77,.15);color:var(--am)}
-.us{background:rgba(0,201,167,.15);color:var(--g)}
-.tp-news{background:rgba(77,168,240,.12);color:var(--bl)}
-.tp-paper{background:rgba(180,141,240,.12);color:var(--pu)}
-.tp-magazine{background:rgba(240,180,77,.12);color:var(--am)}
-.score-hi{background:rgba(240,96,104,.15);color:var(--rd)}
-.score-mid{background:rgba(240,180,77,.15);color:var(--am)}
-.score-lo{background:rgba(77,240,154,.15);color:var(--gr)}
-
-/* TABLE */
-.tbl-box{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r2);overflow:hidden;margin-bottom:1rem}
-table{width:100%;border-collapse:collapse;font-size:.8rem}
-th{text-align:left;padding:.55rem .85rem;background:var(--bg3);color:var(--t2);font-weight:600;font-size:.67rem;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--bdr)}
-td{padding:.55rem .85rem;border-bottom:1px solid var(--bdr);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg2)}
-.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px}
-.dot-g{background:var(--g)}.dot-a{background:var(--am)}.dot-r{background:var(--rd)}
-
-/* MODAL */
-.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:400;align-items:center;justify-content:center;padding:1rem}
-.ov.open{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r3);width:680px;max-width:100%;max-height:86vh;overflow-y:auto;padding:1.5rem}
-.mh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:.8rem}
-.mh h3{font-size:1rem;font-weight:600;line-height:1.45;flex:1}
-.mclose{background:none;border:none;cursor:pointer;color:var(--t2);font-size:1.2rem;font-family:var(--font)}
-.mclose:hover{color:var(--t0)}
-.mbody{font-size:.84rem;color:var(--t1);line-height:1.7}
-.mfoo{margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center}
-
-/* PANEL */
-.panel{background:var(--bg1);border:1px solid var(--bdr);border-radius:var(--r2);padding:1.2rem;margin-bottom:1rem}
-.panel h3{font-size:.85rem;font-weight:600;margin-bottom:.85rem}
-.panel .desc{font-size:.75rem;color:var(--t2);margin-bottom:.85rem;line-height:1.6}
-.irow{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--bdr)}
-.irow:last-child{border-bottom:none}
-.irow-l .lbl{font-size:.83rem}
-.irow-l .hint{font-size:.7rem;color:var(--t2);margin-top:.1rem}
-.inp{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);color:var(--t0);padding:.48rem .72rem;font-size:.82rem;font-family:var(--font);transition:border-color .2s}
-.inp:focus{outline:none;border-color:var(--g)}
-.inp.w200{width:200px}.inp.w300{width:300px}.inp.full{width:100%}
-textarea.inp{resize:vertical;height:80px}
-
-/* PROGRESS */
-.prog-wrap{height:3px;background:var(--bg3);border-radius:2px;margin-bottom:1.2rem;overflow:hidden;display:none}
-.prog-bar{height:100%;background:linear-gradient(90deg,var(--g),var(--bl));border-radius:2px;transition:width .4s;width:0%}
-
-/* LOADING */
-.spin{display:inline-block;width:18px;height:18px;border:2px solid var(--bdr);border-top-color:var(--g);border-radius:50%;animation:sp 1s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
-.loading{text-align:center;padding:2.5rem;color:var(--t2);font-size:.85rem}
-.loading .spin{display:block;margin:0 auto .8rem}
-
-/* REGION FILTER */
-.fbar{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
-.fbar select,.fbar input[type=text]{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);color:var(--t1);padding:.35rem .65rem;font-size:.8rem;font-family:var(--font)}
-.fbar select:focus,.fbar input[type=text]:focus{outline:none;border-color:var(--g)}
-.fcnt{font-size:.75rem;color:var(--t2);font-family:var(--mono)}
-
-/* EMPTY */
-.empty{text-align:center;padding:3rem;color:var(--t2)}
-.empty .eico{font-size:2rem;margin-bottom:.6rem;opacity:.4}
-.empty p{font-size:.83rem;line-height:1.7}
-
-/* TOAST */
-#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:.65rem 1.1rem;font-size:.82rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:340px}
-#toast.show{opacity:1}
-
-@media(max-width:900px){
-  .sidebar{width:180px}.main{margin-left:180px}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .ngrid{grid-template-columns:1fr}
-  .rec-grid{grid-template-columns:1fr}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>社群連結管理系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input, select, button { font-size: 16px !important; }
+        .system-title { letter-spacing: 0.05em; }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen font-sans antialiased">
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="lcard">
-    <div class="l-logo">
-      <div class="chip"><span>● Health Intel Hub v3</span></div>
-      <h1>保健食品情報中心</h1>
-    </div>
-    <div class="fg"><label>帳號</label><input id="l-user" type="text" autocomplete="username" placeholder="請輸入帳號"></div>
-    <div class="fg"><label>密碼</label><input id="l-pass" type="password" autocomplete="current-password" placeholder="請輸入密碼"></div>
-    <button class="btn-login" onclick="doLogin()">登入系統</button>
-    <div id="l-err">帳號或密碼錯誤</div>
-    <div class="l-hint"><span onclick="clearCache()">清除快取重試</span></div>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app">
-  <aside class="sidebar">
-    <div class="sb-brand">
-      <div class="chip"><span>Live</span></div>
-      <h2>保健情報中心</h2>
-    </div>
-    <nav class="sb-nav">
-      <div class="nav-sec">情報</div>
-      <div class="ni on" data-pg="dashboard" onclick="nav(this)"><i class="ico">⬡</i>今日儀表板</div>
-      <div class="ni" data-pg="news" onclick="nav(this)"><i class="ico">◈</i>情報列表</div>
-      <div class="nav-sec">管理</div>
-      <div class="ni" data-pg="websites" onclick="nav(this)"><i class="ico">⊞</i>網站清單</div>
-      <div class="ni" data-pg="keywords" onclick="nav(this)"><i class="ico">◉</i>關鍵字管理</div>
-      <div class="ni" data-pg="users" onclick="nav(this)"><i class="ico">⊙</i>使用者管理</div>
-      <div class="ni" data-pg="settings" onclick="nav(this)"><i class="ico">⚙</i>系統設定</div>
-    </nav>
-    <div class="sb-foot">
-      <div class="u-row">
-        <div class="avatar" id="u-av">A</div>
-        <span class="u-name" id="u-nm">admin</span>
-        <button class="btn-out" onclick="doLogout()">登出</button>
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-
-    <!-- DASHBOARD -->
-    <div class="pg on" id="pg-dashboard">
-      <div class="tbar">
-        <div class="tbar-l">
-          <h2>今日保健食品情報儀表板</h2>
-          <div class="dt" id="today-dt"></div>
+    <div id="login-section" class="flex items-center justify-center min-h-screen px-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-black text-indigo-600 system-title mb-2">社群連結管理系統</h1>
+                <p class="text-gray-400 text-sm font-medium">請輸入帳號密碼登入</p>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="text" id="username" placeholder="帳號" 
+                       autocapitalize="none" autocorrect="off"
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="password" id="password" placeholder="密碼" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <button type="button" onclick="handleLogin()" id="login-btn"
+                        class="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold hover:bg-indigo-700 transition duration-200 shadow-md">
+                    登入系統
+                </button>
+            </div>
         </div>
-        <div class="tbar-r">
-          <button class="btn" onclick="sendEmail()">✉ 發送今日報告</button>
-          <button class="btn" onclick="loadDashboard(false)">↻ 更新（快取）</button>
-          <button class="btn p" id="btn-fetch" onclick="triggerFetch()">⚡ AI 抓取更新</button>
+    </div>
+
+    <div id="main-section" class="hidden max-w-4xl mx-auto p-4 md:p-6 pb-20">
+        <div class="flex flex-col mb-6 border-b border-gray-200 pb-4">
+            <h1 class="text-xl font-black text-indigo-600 system-title mb-2">社群連結管理系統</h1>
+            <div class="flex justify-between items-center">
+                <p class="text-gray-600 font-medium">歡迎, <span id="display-user" class="text-indigo-600 font-bold"></span></p>
+                <button onclick="location.reload()" class="text-gray-400 hover:text-red-500 text-xs underline">登出系統</button>
+            </div>
         </div>
-      </div>
-      <div class="prog-wrap" id="prog-wrap"><div class="prog-bar" id="prog-bar"></div></div>
 
-      <!-- STATS -->
-      <div class="stats">
-        <div class="sc" style="--cc:var(--bl)"><div class="sc-lbl">今日情報數</div><div class="sc-val" id="st-total">—</div></div>
-        <div class="sc" style="--cc:var(--rd)"><div class="sc-lbl">原料預警</div><div class="sc-val" id="st-alert">—</div></div>
-        <div class="sc" style="--cc:var(--am)"><div class="sc-lbl">監測關鍵字</div><div class="sc-val" id="st-kw">—</div></div>
-        <div class="sc" style="--cc:var(--gr)"><div class="sc-lbl">涵蓋地區</div><div class="sc-val" id="st-region">—</div></div>
-      </div>
-
-      <!-- ALERTS -->
-      <div id="alert-section" style="display:none;margin-bottom:1.4rem">
-        <div class="sh">🔴 原料預警</div>
-        <div id="alert-list"></div>
-      </div>
-
-      <!-- INSIGHT -->
-      <div class="sh">AI 趨勢洞察</div>
-      <div class="insight-box" id="insight-box">
-        <div class="label">趨勢分析</div>
-        <p id="insight-trend" style="color:var(--t2)">點選「AI 抓取更新」或「更新（快取）」載入今日洞察</p>
-        <div class="rec-grid" id="rec-grid" style="display:none"></div>
-      </div>
-
-      <!-- KEYWORD CLOUD -->
-      <div class="sh">關鍵字比重圖 <small style="font-size:.65em;font-weight:400;text-transform:none;letter-spacing:0">（含各國同義字合併計算）</small></div>
-      <div class="cloud-box">
-        <div id="kw-cloud"><div style="color:var(--t2);font-size:.82rem;padding:2rem 0;text-align:center">尚未載入</div></div>
-      </div>
-
-      <!-- TODAY NEWS -->
-      <div class="sh">今日重點情報</div>
-      <div class="ngrid" id="dash-grid">
-        <div class="loading" style="grid-column:span 2"><div class="spin"></div>等待資料載入...</div>
-      </div>
-    </div>
-
-    <!-- NEWS LIST -->
-    <div class="pg" id="pg-news">
-      <div class="tbar">
-        <div class="tbar-l"><h2>情報列表</h2></div>
-        <div class="tbar-r">
-          <button class="btn p" onclick="triggerFetch()">⚡ AI 抓取更新</button>
+        <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm mb-6 border border-gray-200">
+            <h2 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">新增連結紀錄</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">紀錄人員</label>
+                    <select id="recorder-select" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">媒體名稱</label>
+                    <select id="media-select" class="w-full p-3 border border-gray-300 rounded-lg"></select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">客戶名稱</label>
+                    <input type="text" id="customer" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="請輸入客戶名稱">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">分享連結</label>
+                    <input type="url" id="link" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="https://...">
+                </div>
+            </div>
+            <button onclick="submitData()" id="save-btn" 
+                    class="mt-6 w-full bg-green-600 text-white p-4 rounded-xl font-bold shadow-lg hover:bg-green-700 active:scale-95 transition duration-200 text-lg">
+                儲存紀錄
+            </button>
         </div>
-      </div>
-      <div class="fbar">
-        <select id="f-region" onchange="renderNewsList()">
-          <option value="">全部地區</option>
-          <option value="tw">🇹🇼 台灣</option><option value="jp">🇯🇵 日本</option>
-          <option value="cn">🇨🇳 中國</option><option value="kr">🇰🇷 韓國</option>
-          <option value="eu">🇪🇺 歐洲</option><option value="us">🇺🇸 美國</option>
-        </select>
-        <select id="f-type" onchange="renderNewsList()">
-          <option value="">全部類型</option>
-          <option value="news">新聞</option><option value="paper">論文</option>
-          <option value="magazine">雜誌</option>
-        </select>
-        <select id="f-score" onchange="renderNewsList()">
-          <option value="">全部評分</option>
-          <option value="hi">高（7-10）</option><option value="mid">中（4-6）</option>
-        </select>
-        <input type="text" id="f-search" placeholder="搜尋關鍵字..." oninput="renderNewsList()" style="min-width:160px">
-        <span class="fcnt" id="f-cnt"></span>
-      </div>
-      <div class="ngrid" id="news-grid"></div>
-    </div>
 
-    <!-- WEBSITES -->
-    <div class="pg" id="pg-websites">
-      <div class="tbar">
-        <div class="tbar-l"><h2>網站清單管理</h2></div>
-        <div class="tbar-r"><button class="btn p" onclick="openAddSite()">＋ 新增來源</button></div>
-      </div>
-      <div class="tbl-box">
-        <table><thead><tr><th>來源名稱</th><th>網址</th><th>地區</th><th>類型</th><th>需登入</th><th>抓取頻率</th><th>上次抓取</th><th>狀態</th><th>操作</th></tr></thead>
-        <tbody id="sites-tbody"></tbody></table>
-      </div>
-    </div>
-
-    <!-- KEYWORDS -->
-    <div class="pg" id="pg-keywords">
-      <div class="tbar">
-        <div class="tbar-l"><h2>關鍵字管理</h2></div>
-        <div class="tbar-r"><button class="btn p" onclick="openAddKw()">＋ 新增關鍵字</button></div>
-      </div>
-      <div class="sh">監測關鍵字</div>
-      <div class="tbl-box">
-        <table><thead><tr><th>關鍵字</th><th>類別</th><th>優先度</th><th>今日出現次數</th><th>狀態</th></tr></thead>
-        <tbody id="kw-tbody"></tbody></table>
-      </div>
-      <div class="sh" style="margin-top:1.4rem">Synonym_Map — 多國同義字對照</div>
-      <div class="tbl-box">
-        <table><thead><tr><th>標準詞</th><th>中文同義字</th><th>英文同義字</th><th>日文</th><th>韓文</th><th>操作</th></tr></thead>
-        <tbody id="syn-tbody"></tbody></table>
-      </div>
-      <div style="margin-top:.7rem">
-        <button class="btn p" onclick="openAddSyn()">＋ 新增同義字組</button>
-      </div>
-    </div>
-
-    <!-- USERS -->
-    <div class="pg" id="pg-users">
-      <div class="tbar">
-        <div class="tbar-l"><h2>使用者管理</h2></div>
-      </div>
-      <div class="panel">
-        <p class="desc">使用者資料來自帳號密碼 Sheet（Users tab），密碼欄不顯示。如需新增/修改使用者，請直接編輯 Google Sheet。</p>
-      </div>
-      <div class="tbl-box">
-        <table><thead><tr><th>帳號</th><th>中文姓名</th><th>英文姓名</th><th>Email</th><th>角色</th><th>建立日期</th></tr></thead>
-        <tbody id="users-tbody"></tbody></table>
-      </div>
-      <div style="margin-top:.7rem"><button class="btn" onclick="loadUsers()">↻ 重新載入</button></div>
-      <div class="sh" style="margin-top:1.4rem">Email 通知清單</div>
-      <div class="tbl-box">
-        <table><thead><tr><th>姓名</th><th>Email</th><th>類型</th><th>語言</th><th>狀態</th></tr></thead>
-        <tbody id="email-tbody"></tbody></table>
-      </div>
-      <div style="margin-top:.7rem"><button class="btn p" onclick="openAddEmail()">＋ 新增收件者</button></div>
-    </div>
-
-    <!-- SETTINGS -->
-    <div class="pg" id="pg-settings">
-      <div class="tbar">
-        <div class="tbar-l"><h2>系統設定</h2></div>
-        <div class="tbar-r"><button class="btn p" onclick="saveSettings()">↓ 儲存設定</button></div>
-      </div>
-      <div class="panel">
-        <h3>Google Apps Script 連線</h3>
-        <div class="irow">
-          <div class="irow-l"><div class="lbl">Web App URL</div><div class="hint">部署後的 doGet/doPost 端點</div></div>
-          <input class="inp w300" id="cfg-gas" placeholder="https://script.google.com/macros/s/.../exec">
+        <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-200">
+            <h2 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">我的最近紀錄</h2>
+            <div class="overflow-x-auto -mx-5 md:mx-0">
+                <div class="inline-block min-w-full align-middle">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">日期</th>
+                                <th class="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">客戶</th>
+                                <th class="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">媒體</th>
+                                <th class="p-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">連結</th>
+                            </tr>
+                        </thead>
+                        <tbody id="record-table-body" class="bg-white divide-y divide-gray-100 text-gray-700"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="panel">
-        <h3>Gemini API</h3>
-        <p class="desc">Key 儲存於 Apps Script Script Properties（執行 <code>saveGeminiKey()</code>）。<br>
-        取得免費 Key：<a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></p>
-        <div class="irow">
-          <div class="irow-l"><div class="lbl">摘要語言</div></div>
-          <select class="inp" id="cfg-lang" style="width:200px">
-            <option value="zh-TW">繁體中文</option>
-            <option value="zh-CN">簡體中文</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-      </div>
-      <div class="panel">
-        <h3>顯示設定</h3>
-        <div class="irow">
-          <div class="irow-l"><div class="lbl">儀表板顯示則數</div></div>
-          <input class="inp" id="cfg-limit" type="number" value="8" min="4" max="20" style="width:80px">
-        </div>
-      </div>
     </div>
 
-  </main>
-</div>
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzgkPZXW41f5Liiffsm-jwUp0JzB5TlEml7EbQjDlw55bT3MN3uu4WfJxW3Hj5lxett/exec"; 
+        let userName = "";
 
-<!-- NEWS DETAIL MODAL -->
-<div class="ov" id="news-ov">
-  <div class="modal">
-    <div class="mh"><h3 id="m-title"></h3><button class="mclose" onclick="closeOv('news-ov')">✕</button></div>
-    <div class="mbody" id="m-body"></div>
-    <div class="mfoo">
-      <a id="m-src" href="#" target="_blank" rel="noopener" style="font-size:.78rem;color:var(--bl)">↗ 查看原文</a>
-      <span id="m-date" style="font-size:.72rem;color:var(--t2);font-family:var(--mono)"></span>
-    </div>
-  </div>
-</div>
+        // 登入函式
+        async function handleLogin() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            if (!user || !pass) { alert("請填寫帳號與密碼"); return; }
 
-<!-- ADD SITE MODAL -->
-<div class="ov" id="site-ov">
-  <div class="modal" style="width:520px">
-    <div class="mh"><h3>新增監控來源</h3><button class="mclose" onclick="closeOv('site-ov')">✕</button></div>
-    <div class="mbody">
-      <div class="fg"><label>來源名稱</label><input class="inp full" id="add-site-name"></div>
-      <div class="fg"><label>網址</label><input class="inp full" id="add-site-url" placeholder="https://"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
-        <div class="fg"><label>地區</label>
-          <select class="inp full" id="add-site-region">
-            <option value="tw">🇹🇼 台灣</option><option value="jp">🇯🇵 日本</option>
-            <option value="cn">🇨🇳 中國</option><option value="kr">🇰🇷 韓國</option>
-            <option value="eu">🇪🇺 歐洲</option><option value="us">🇺🇸 美國</option>
-          </select></div>
-        <div class="fg"><label>類型</label>
-          <select class="inp full" id="add-site-type">
-            <option>新聞</option><option>論文</option><option>雜誌</option>
-            <option>政府</option><option>協會</option><option>部落格</option>
-          </select></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
-        <div class="fg"><label>需登入</label>
-          <select class="inp full" id="add-site-login"><option value="N">不需要</option><option value="Y">需要</option></select></div>
-        <div class="fg"><label>抓取頻率</label>
-          <select class="inp full" id="add-site-freq"><option>每日</option><option>每週</option></select></div>
-      </div>
-      <div class="fg"><label>備註</label><input class="inp full" id="add-site-note"></div>
-      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
-        <button class="btn" onclick="closeOv('site-ov')">取消</button>
-        <button class="btn p" onclick="submitAddSite()">新增</button>
-      </div>
-    </div>
-  </div>
-</div>
+            const loginBtn = document.getElementById('login-btn');
+            loginBtn.disabled = true;
+            loginBtn.innerText = "驗證中...";
 
-<!-- ADD KEYWORD MODAL -->
-<div class="ov" id="kw-ov">
-  <div class="modal" style="width:480px">
-    <div class="mh"><h3>新增監測關鍵字</h3><button class="mclose" onclick="closeOv('kw-ov')">✕</button></div>
-    <div class="mbody">
-      <div class="fg"><label>關鍵字（中文）</label><input class="inp full" id="add-kw-word"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
-        <div class="fg"><label>類別</label><input class="inp full" id="add-kw-cat" placeholder="如：腸道健康"></div>
-        <div class="fg"><label>優先度</label>
-          <select class="inp full" id="add-kw-pri"><option>高</option><option>中</option><option>低</option></select></div>
-      </div>
-      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
-        <button class="btn" onclick="closeOv('kw-ov')">取消</button>
-        <button class="btn p" onclick="submitAddKw()">新增</button>
-      </div>
-    </div>
-  </div>
-</div>
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "login", username: user, password: pass })
+                });
+                const result = await response.json();
 
-<!-- ADD SYNONYM MODAL -->
-<div class="ov" id="syn-ov">
-  <div class="modal" style="width:540px">
-    <div class="mh"><h3>新增同義字組</h3><button class="mclose" onclick="closeOv('syn-ov')">✕</button></div>
-    <div class="mbody">
-      <div class="fg"><label>標準詞（中文）</label><input class="inp full" id="add-syn-std"></div>
-      <div class="fg"><label>中文同義字（逗號分隔）</label><input class="inp full" id="add-syn-zh" placeholder="乳酸菌,益菌,好菌"></div>
-      <div class="fg"><label>英文同義字（逗號分隔）</label><input class="inp full" id="add-syn-en" placeholder="Probiotics,Lactobacillus"></div>
-      <div class="fg"><label>日文同義字</label><input class="inp full" id="add-syn-jp" placeholder="プロバイオティクス"></div>
-      <div class="fg"><label>韓文同義字</label><input class="inp full" id="add-syn-kr" placeholder="유산균"></div>
-      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
-        <button class="btn" onclick="closeOv('syn-ov')">取消</button>
-        <button class="btn p" onclick="submitAddSyn()">新增</button>
-      </div>
-    </div>
-  </div>
-</div>
+                if (result.success) {
+                    userName = result.displayName;
+                    document.getElementById('display-user').innerText = userName;
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('main-section').classList.remove('hidden');
+                    await initApp();
+                } else {
+                    alert(result.msg || "登入失敗");
+                    loginBtn.disabled = false;
+                    loginBtn.innerText = "登入系統";
+                }
+            } catch (error) {
+                console.error(error);
+                alert("伺服器連線失敗");
+                loginBtn.disabled = false;
+                loginBtn.innerText = "登入系統";
+            }
+        }
 
-<!-- ADD EMAIL MODAL -->
-<div class="ov" id="email-ov">
-  <div class="modal" style="width:460px">
-    <div class="mh"><h3>新增 Email 收件者</h3><button class="mclose" onclick="closeOv('email-ov')">✕</button></div>
-    <div class="mbody">
-      <div class="fg"><label>姓名</label><input class="inp full" id="add-em-name"></div>
-      <div class="fg"><label>Email</label><input class="inp full" id="add-em-email" type="email"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
-        <div class="fg"><label>類型</label>
-          <select class="inp full" id="add-em-type"><option>每日摘要</option><option>每週彙整</option></select></div>
-        <div class="fg"><label>語言</label>
-          <select class="inp full" id="add-em-lang"><option>繁中</option><option>簡中</option><option>英文</option></select></div>
-      </div>
-      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
-        <button class="btn" onclick="closeOv('email-ov')">取消</button>
-        <button class="btn p" onclick="submitAddEmail()">新增</button>
-      </div>
-    </div>
-  </div>
-</div>
+        async function initApp() {
+            try {
+                const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getFormData" }) });
+                const data = await res.json();
+                
+                const rSelect = document.getElementById('recorder-select');
+                const mSelect = document.getElementById('media-select');
+                
+                rSelect.innerHTML = "";
+                mSelect.innerHTML = "";
 
-<div id="toast"></div>
+                data.userList.forEach(u => { rSelect.add(new Option(u, u)); });
+                rSelect.value = userName;
+                data.mediaList.forEach(m => { mSelect.add(new Option(m, m)); });
+                
+                await fetchUserRecords();
+            } catch (e) { console.error("初始化資料失敗", e); }
+        }
 
-<script>
-// ════════════════════════════════════════════
-// APP STATE
-// ════════════════════════════════════════════
-const AK = 'hih3';
-const LS = {
-  get: k => { try{ return JSON.parse(localStorage.getItem(AK+'_'+k)); }catch(e){ return null; } },
-  set: (k,v) => localStorage.setItem(AK+'_'+k, JSON.stringify(v)),
-};
+        async function fetchUserRecords() {
+            try {
+                const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getUserRecords", userName: userName }) });
+                const data = await res.json();
+                const tbody = document.getElementById('record-table-body');
+                
+                if (data.records && data.records.length > 0) {
+                    tbody.innerHTML = data.records.map(r => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 text-sm whitespace-nowrap">${r.date}</td>
+                            <td class="p-3 text-sm font-medium">${r.customer}</td>
+                            <td class="p-3 text-sm text-gray-500">${r.media}</td>
+                            <td class="p-3 text-sm"><a href="${r.link}" target="_blank" class="text-indigo-600 font-bold">查看</a></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400">尚無歷史紀錄</td></tr>';
+                }
+            } catch (e) { console.error("抓取紀錄失敗", e); }
+        }
 
-let APP = {
-  user: null,
-  gasUrl: '',
-  results: [],
-  kwCounts: {},
-  keywords: [],
-  synonyms: [],
-  websites: [],
-  users: [],
-  emails: [],
-};
+        async function submitData() {
+            const saveBtn = document.getElementById('save-btn');
+            const customer = document.getElementById('customer').value.trim();
+            const link = document.getElementById('link').value.trim();
+            const media = document.getElementById('media-select').value;
+            const recorder = document.getElementById('recorder-select').value;
 
-const REGION = {tw:'🇹🇼 台灣',jp:'🇯🇵 日本',cn:'🇨🇳 中國',kr:'🇰🇷 韓國',eu:'🇪🇺 歐洲',us:'🇺🇸 美國'};
-const TYPE   = {news:'新聞',paper:'論文',magazine:'雜誌',blog:'部落格'};
-const KW_COLORS = ['#00c9a7','#4da8f0','#f0b44d','#b48df0','#4df09a','#f06068','#79c0ff','#ffa657','#ff9ade','#39d353','#00e5ff','#ff6e40'];
+            if (!customer || !link) { alert("請填寫客戶名稱與連結"); return; }
 
-// ════════════════════════════════════════════
-// AUTH
-// ════════════════════════════════════════════
-async function doLogin() {
-  const u = document.getElementById('l-user').value.trim();
-  const p = document.getElementById('l-pass').value;
-  if (!u || !p) { showErr('請輸入帳號和密碼'); return; }
+            saveBtn.disabled = true;
+            saveBtn.innerText = "正在儲存...";
 
-  const btn = document.querySelector('.btn-login');
-  btn.disabled = true; btn.textContent = '驗證中…';
+            try {
+                const payload = {
+                    action: "saveRecord",
+                    recorder: recorder,
+                    customer: customer,
+                    media: media,
+                    link: link
+                };
+                const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+                const result = await res.json();
 
-  const cfg = LS.get('cfg') || {};
-  const gasUrl = cfg.gasUrl || '';
-  let ok = false;
-
-  if (gasUrl) {
-    try {
-      const d = await getGAS('login', {u, p});
-      if (d.status === 'ok') {
-        ok = true;
-        APP.user = d.user;
-      }
-    } catch(e) { console.warn('GAS login fail:', e.message); }
-  }
-
-  btn.disabled = false; btn.textContent = '登入系統';
-
-  if (ok) {
-    APP.gasUrl = gasUrl;
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    const name = APP.user.nameZh || u;
-    document.getElementById('u-nm').textContent = name;
-    document.getElementById('u-av').textContent = name[0].toUpperCase();
-    document.getElementById('today-dt').textContent =
-      new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
-    initApp();
-  } else if (!gasUrl) {
-    showErr('請先在設定頁填入 Apps Script URL，再重新登入');
-  } else {
-    showErr('帳號或密碼錯誤');
-  }
-}
-
-function showErr(msg) {
-  const e = document.getElementById('l-err');
-  e.textContent = msg; e.style.display = 'block';
-  setTimeout(()=>e.style.display='none', 4000);
-}
-function clearCache() {
-  if(confirm('清除所有快取？')) {
-    Object.keys(localStorage).filter(k=>k.startsWith(AK)).forEach(k=>localStorage.removeItem(k));
-    location.reload();
-  }
-}
-function doLogout() {
-  APP.user = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('l-pass').value = '';
-}
-document.getElementById('l-pass').addEventListener('keydown', e=>e.key==='Enter'&&doLogin());
-document.getElementById('l-user').addEventListener('keydown', e=>e.key==='Enter'&&document.getElementById('l-pass').focus());
-
-// ════════════════════════════════════════════
-// NAVIGATION
-// ════════════════════════════════════════════
-function nav(el) {
-  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
-  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');
-  const pg = el.dataset.pg;
-  document.getElementById('pg-'+pg).classList.add('on');
-  if (pg==='news')     { loadResults().then(()=>renderNewsList()); }
-  if (pg==='websites') { loadWebsites(); }
-  if (pg==='keywords') { loadKeywords(); loadSynonyms(); }
-  if (pg==='users')    { loadUsers(); loadEmails(); }
-  if (pg==='settings') { loadSettingsForm(); }
-}
-
-// ════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════
-function initApp() {
-  const cfg = LS.get('cfg') || {};
-  APP.gasUrl = cfg.gasUrl || '';
-  document.getElementById('st-kw').textContent = '…';
-  loadDashboard(false);
-}
-
-// ════════════════════════════════════════════
-// GAS API HELPERS
-// ════════════════════════════════════════════
-async function getGAS(action, params) {
-  const url = APP.gasUrl + '?action=' + action +
-    Object.entries(params||{}).map(([k,v])=>'&'+k+'='+encodeURIComponent(v)).join('');
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('HTTP '+res.status);
-  return await res.json();
-}
-
-async function postGAS(action, data) {
-  const res = await fetch(APP.gasUrl, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({action, data})
-  });
-  if (!res.ok) throw new Error('HTTP '+res.status);
-  return await res.json();
-}
-
-// ════════════════════════════════════════════
-// DASHBOARD
-// ════════════════════════════════════════════
-async function loadDashboard(force) {
-  if (!APP.gasUrl) { toast('⚠ 請先在設定頁填入 Apps Script URL'); return; }
-  setProgress(10);
-  try {
-    const d = await getGAS('getDashboard', force?{force:'1'}:{});
-    setProgress(60);
-    if (d.status !== 'ok') { toast('⚠ '+d.message); setProgress(0); return; }
-
-    APP.results   = d.results || [];
-    APP.kwCounts  = d.kwCounts || {};
-
-    // Stats
-    document.getElementById('st-total').textContent  = d.results?.length || 0;
-    const alerts = d.results?.filter(r=>r['原料預警標籤']&&String(r['原料預警標籤']).length>0)||[];
-    document.getElementById('st-alert').textContent  = alerts.length || 0;
-    document.getElementById('st-region').textContent = [...new Set((d.results||[]).map(r=>r['地區']))].length || 0;
-
-    // Alerts
-    if (alerts.length) {
-      document.getElementById('alert-section').style.display = 'block';
-      document.getElementById('alert-list').innerHTML = alerts.slice(0,3).map(r=>`
-        <div class="alert-card">
-          <div class="at">🔴 ${r['原料預警標籤']}</div>
-          <p>${r['原始標題']} — ${r['AI摘要(繁中100字內)']?.substring(0,80)}...</p>
-        </div>`).join('');
-    }
-
-    // Insight
-    const ins = d.insight || {};
-    document.getElementById('insight-trend').textContent = ins.trend_analysis || '—';
-    if (ins.recommendations) {
-      const rec = ins.recommendations;
-      document.getElementById('rec-grid').style.display = 'grid';
-      document.getElementById('rec-grid').innerHTML = ['採購','研發','行銷'].map(role=>`
-        <div class="rec-item">
-          <div class="role">${role}</div>
-          <p>${rec[role]||'—'}</p>
-        </div>`).join('');
-    }
-
-    // Keyword cloud
-    renderCloud(APP.kwCounts);
-    const kwCount = Object.keys(APP.kwCounts).length;
-    document.getElementById('st-kw').textContent = kwCount || '—';
-
-    // News grid
-    renderDashGrid(d.results||[]);
-    setProgress(100);
-  } catch(e) {
-    toast('✗ 載入失敗：'+e.message);
-  } finally {
-    setTimeout(()=>setProgress(0), 800);
-  }
-}
-
-async function triggerFetch() {
-  if (!APP.gasUrl) { toast('⚠ 請先設定 Apps Script URL'); return; }
-  const btn = document.getElementById('btn-fetch');
-  btn.disabled = true; btn.textContent = '… AI 抓取中';
-  setProgress(20);
-  toast('⚡ AI 正在抓取並分析各網站資料，這需要約 1-3 分鐘...');
-  try {
-    setProgress(40);
-    await getGAS('triggerFetch', {});
-    setProgress(80);
-    toast('✓ 抓取完成，重新載入儀表板...');
-    await loadDashboard(true);
-  } catch(e) {
-    toast('✗ 抓取失敗：'+e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = '⚡ AI 抓取更新';
-    setTimeout(()=>setProgress(0), 800);
-  }
-}
-
-async function sendEmail() {
-  if (!APP.gasUrl) { toast('⚠ 請先設定 Apps Script URL'); return; }
-  toast('✉ 發送中...');
-  try {
-    const d = await getGAS('sendEmail', {});
-    toast(d.status==='ok' ? '✓ 今日報告已發送' : '✗ '+d.message);
-  } catch(e) { toast('✗ '+e.message); }
-}
-
-// ════════════════════════════════════════════
-// KEYWORD CLOUD
-// ════════════════════════════════════════════
-function renderCloud(counts) {
-  const el = document.getElementById('kw-cloud');
-  const entries = Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
-  if (!entries.length) { el.innerHTML = '<div style="color:var(--t2);padding:2rem;text-align:center">尚無關鍵字資料</div>'; return; }
-  const max = entries[0][1];
-  el.innerHTML = entries.map(([k,v],i) => {
-    const size = (.85 + (v/max)*2.1).toFixed(2);
-    const col = KW_COLORS[i % KW_COLORS.length];
-    return `<span class="kw" style="font-size:${size}rem;color:${col}" title="${k}: ${v}次">${k}<sup>${v}</sup></span>`;
-  }).join('');
-}
-
-// ════════════════════════════════════════════
-// NEWS RENDER
-// ════════════════════════════════════════════
-function scoreClass(s) {
-  s = parseInt(s)||0;
-  if (s>=7) return 'score-hi';
-  if (s>=4) return 'score-mid';
-  return 'score-lo';
-}
-
-function newsCardHTML(r, idx, src) {
-  const tags = (r['關鍵字命中']||'').split(',').filter(Boolean).map(t=>`<span class="ntag">${t.trim()}</span>`).join('');
-  const score = r['重要性評分(1-10)'];
-  const alert = r['原料預警標籤'];
-  return `<div class="ncard" onclick="openNews(${idx},'${src}')">
-    <div class="ncard-top">
-      <span class="bde ${r['地區']||''}">${REGION[r['地區']]||r['地區']||'—'}</span>
-      <span class="bde tp-${r['類型']||'news'}">${TYPE[r['類型']]||r['類型']||'新聞'}</span>
-      <span class="bde ${scoreClass(score)}">評分 ${score||'—'}</span>
-      ${alert?`<span class="bde" style="background:var(--rdbg);color:var(--rd)">🔴 ${alert}</span>`:''}
-    </div>
-    <h3>${r['原始標題']||'—'}</h3>
-    <p>${(r['AI摘要(繁中100字內)']||'').substring(0,120)}${(r['AI摘要(繁中100字內)']||'').length>120?'...':''}</p>
-    <div class="ntags">${tags}</div>
-    <div class="ncard-foot">
-      <span class="nsrc">來源：<a href="${r['原文URL']||'#'}" target="_blank" onclick="event.stopPropagation()">${r['來源網站']||'—'}</a></span>
-      <span class="ndate">${r['日期']||''}</span>
-    </div>
-  </div>`;
-}
-
-function renderDashGrid(results) {
-  const g = document.getElementById('dash-grid');
-  if (!results.length) {
-    g.innerHTML = `<div class="empty" style="grid-column:span 2"><div class="eico">◈</div><p>尚無資料<br>請點選「AI 抓取更新」開始作業</p></div>`;
-    return;
-  }
-  g.innerHTML = results.slice(0,8).map((r,i)=>newsCardHTML(r,i,'APP.results')).join('');
-}
-
-async function loadResults() {
-  try {
-    const d = await getGAS('getResults', {limit:'50'});
-    if (d.status==='ok') APP.results = d.data || [];
-  } catch(e) { toast('✗ 載入情報失敗：'+e.message); }
-}
-
-function renderNewsList() {
-  const reg    = document.getElementById('f-region').value;
-  const typ    = document.getElementById('f-type').value;
-  const score  = document.getElementById('f-score').value;
-  const search = document.getElementById('f-search').value.toLowerCase();
-  let arr = APP.results;
-  if (reg)    arr = arr.filter(r=>r['地區']===reg);
-  if (typ)    arr = arr.filter(r=>r['類型']===typ);
-  if (score==='hi')  arr = arr.filter(r=>parseInt(r['重要性評分(1-10)']||0)>=7);
-  if (score==='mid') arr = arr.filter(r=>{const s=parseInt(r['重要性評分(1-10)']||0);return s>=4&&s<7;});
-  if (search) arr = arr.filter(r=>
-    (r['原始標題']||'').toLowerCase().includes(search)||
-    (r['AI摘要(繁中100字內)']||'').toLowerCase().includes(search)||
-    (r['關鍵字命中']||'').toLowerCase().includes(search)
-  );
-  document.getElementById('f-cnt').textContent = '共 '+arr.length+' 則';
-  const g = document.getElementById('news-grid');
-  if (!arr.length) {
-    g.innerHTML = `<div class="empty" style="grid-column:span 2"><div class="eico">◈</div><p>此篩選條件無結果</p></div>`;
-    return;
-  }
-  g.innerHTML = arr.map((r,i)=>newsCardHTML(r,i,'APP.results')).join('');
-}
-
-function openNews(i, src) {
-  const r = APP.results[i]; if (!r) return;
-  document.getElementById('m-title').textContent = r['原始標題']||'';
-  const tags = (r['關鍵字命中']||'').split(',').filter(Boolean).map(t=>`<span class="ntag">${t.trim()}</span>`).join('');
-  const alert = r['原料預警標籤'];
-  document.getElementById('m-body').innerHTML = `
-    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem">
-      <span class="bde ${r['地區']}">${REGION[r['地區']]||r['地區']}</span>
-      <span class="bde tp-${r['類型']}">${TYPE[r['類型']]||r['類型']}</span>
-      <span class="bde ${scoreClass(r['重要性評分(1-10)'])}">重要性 ${r['重要性評分(1-10)']}/10</span>
-      ${alert?`<span class="bde" style="background:var(--rdbg);color:var(--rd)">🔴 ${alert}</span>`:''}
-    </div>
-    <p style="margin-bottom:.9rem;line-height:1.75">${r['AI摘要(繁中100字內)']||''}</p>
-    <div style="margin-bottom:.7rem"><span style="font-size:.72rem;color:var(--t2)">關鍵字命中：</span> ${tags}</div>
-    <div style="font-size:.78rem;color:var(--t2)">來源：${r['來源網站']||''} | 日期：${r['日期']||''}</div>`;
-  document.getElementById('m-src').href = r['原文URL']||'#';
-  document.getElementById('m-date').textContent = r['日期']||'';
-  openOv('news-ov');
-}
-
-// ════════════════════════════════════════════
-// WEBSITES
-// ════════════════════════════════════════════
-async function loadWebsites() {
-  try {
-    const d = await getGAS('getWebsites', {});
-    APP.websites = d.data || [];
-    renderWebsites();
-  } catch(e) { toast('✗ '+e.message); }
-}
-
-function renderWebsites() {
-  document.getElementById('sites-tbody').innerHTML = APP.websites.map((s,i)=>`
-    <tr>
-      <td style="font-weight:500">${s['來源名稱']||''}</td>
-      <td><a href="${s['網址']||'#'}" target="_blank" style="font-size:.76rem">${(s['網址']||'').substring(0,40)}</a></td>
-      <td><span class="bde ${s['地區']||''}">${REGION[s['地區']]||s['地區']}</span></td>
-      <td style="color:var(--t1)">${s['類型']||''}</td>
-      <td>${s['需登入']==='Y'?'<span style="color:var(--am)">需要</span>':'—'}</td>
-      <td style="color:var(--t2);font-size:.78rem">${s['抓取頻率']||''}</td>
-      <td style="font-family:var(--mono);font-size:.72rem;color:var(--t2)">${s['上次抓取']||'—'}</td>
-      <td><span class="dot dot-${s['狀態']==='啟用'?'g':'r'}"></span>${s['狀態']||''}</td>
-      <td><button class="btn sm warn" onclick="removeSite('${s['來源名稱']}')">移除</button></td>
-    </tr>`).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--t2);padding:1.5rem">尚無資料</td></tr>';
-}
-
-function openAddSite() { openOv('site-ov'); }
-async function submitAddSite() {
-  const d = {
-    name:   document.getElementById('add-site-name').value.trim(),
-    url:    document.getElementById('add-site-url').value.trim(),
-    region: document.getElementById('add-site-region').value,
-    type:   document.getElementById('add-site-type').value,
-    login:  document.getElementById('add-site-login').value,
-    freq:   document.getElementById('add-site-freq').value,
-    note:   document.getElementById('add-site-note').value.trim(),
-  };
-  if (!d.name||!d.url) { toast('⚠ 請填入名稱和網址'); return; }
-  try {
-    await postGAS('addWebsite', d);
-    closeOv('site-ov');
-    await loadWebsites();
-    toast('✓ 已新增：'+d.name);
-  } catch(e) { toast('✗ '+e.message); }
-}
-async function removeSite(name) {
-  if (!confirm('確認移除：'+name+'？')) return;
-  try {
-    await postGAS('removeWebsite', {name});
-    await loadWebsites();
-    toast('✓ 已移除');
-  } catch(e) { toast('✗ '+e.message); }
-}
-
-// ════════════════════════════════════════════
-// KEYWORDS
-// ════════════════════════════════════════════
-async function loadKeywords() {
-  try {
-    const d = await getGAS('getKeywords', {});
-    APP.keywords = d.data || [];
-    renderKeywords();
-  } catch(e) { toast('✗ '+e.message); }
-}
-
-function renderKeywords() {
-  document.getElementById('kw-tbody').innerHTML = APP.keywords.map(k=>`
-    <tr>
-      <td style="font-weight:600;color:var(--g)">${k['關鍵字(中文)']}</td>
-      <td style="color:var(--t1)">${k['類別']||''}</td>
-      <td><span class="bde ${k['優先度']==='高'?'score-hi':k['優先度']==='中'?'score-mid':'score-lo'}">${k['優先度']}</span></td>
-      <td style="font-family:var(--mono);color:var(--am)">${APP.kwCounts[k['關鍵字(中文)']]||0}</td>
-      <td><span class="dot dot-g"></span>啟用</td>
-    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--t2);padding:1.5rem">尚無資料</td></tr>';
-}
-
-async function loadSynonyms() {
-  try {
-    const d = await getGAS('getSynonyms', {});
-    APP.synonyms = d.data || [];
-    renderSynonyms();
-  } catch(e) {}
-}
-
-function renderSynonyms() {
-  document.getElementById('syn-tbody').innerHTML = APP.synonyms.map((s,i)=>`
-    <tr>
-      <td style="font-weight:600;color:var(--pu)">${s['標準詞']}</td>
-      <td style="font-size:.76rem;color:var(--t1)">${s['中文同義字']||'—'}</td>
-      <td style="font-size:.76rem;color:var(--t1)">${s['英文同義字']||'—'}</td>
-      <td style="font-size:.76rem;color:var(--t2)">${s['日文同義字']||'—'}</td>
-      <td style="font-size:.76rem;color:var(--t2)">${s['韓文同義字']||'—'}</td>
-      <td><button class="btn sm" onclick="">編輯</button></td>
-    </tr>`).join('');
-}
-
-function openAddKw() { openOv('kw-ov'); }
-async function submitAddKw() {
-  const d = { keyword:document.getElementById('add-kw-word').value.trim(), category:document.getElementById('add-kw-cat').value.trim(), priority:document.getElementById('add-kw-pri').value };
-  if (!d.keyword) { toast('⚠ 請填入關鍵字'); return; }
-  try { await postGAS('addKeyword',d); closeOv('kw-ov'); await loadKeywords(); toast('✓ 已新增'); } catch(e){ toast('✗ '+e.message); }
-}
-function openAddSyn() { openOv('syn-ov'); }
-async function submitAddSyn() {
-  const d = { standard:document.getElementById('add-syn-std').value.trim(), zh:document.getElementById('add-syn-zh').value.trim(), en:document.getElementById('add-syn-en').value.trim(), jp:document.getElementById('add-syn-jp').value.trim(), kr:document.getElementById('add-syn-kr').value.trim() };
-  if (!d.standard) { toast('⚠ 請填入標準詞'); return; }
-  try { await postGAS('addSynonym',d); closeOv('syn-ov'); await loadSynonyms(); toast('✓ 已新增'); } catch(e){ toast('✗ '+e.message); }
-}
-
-// ════════════════════════════════════════════
-// USERS & EMAILS
-// ════════════════════════════════════════════
-async function loadUsers() {
-  try {
-    const d = await getGAS('getUsers', {});
-    APP.users = d.data || [];
-    document.getElementById('users-tbody').innerHTML = APP.users.map(u=>`
-      <tr>
-        <td style="font-weight:500">${u.account}</td>
-        <td>${u.nameZh||'—'}</td><td style="color:var(--t1)">${u.nameEn||'—'}</td>
-        <td style="font-size:.78rem">${u.email||'—'}</td>
-        <td><span class="bde ${u.role==='admin'?'score-hi':'score-lo'}">${u.role||'—'}</span></td>
-        <td style="font-family:var(--mono);font-size:.72rem;color:var(--t2)">${u.createdAt||'—'}</td>
-      </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--t2);padding:1.5rem">尚無資料</td></tr>';
-  } catch(e) { toast('✗ '+e.message); }
-}
-
-async function loadEmails() {
-  try {
-    const d = await getGAS('getEmails', {});
-    APP.emails = d.data || [];
-    document.getElementById('email-tbody').innerHTML = APP.emails.map(e=>`
-      <tr>
-        <td>${e.name||'—'}</td><td>${e.email}</td>
-        <td style="color:var(--t1)">${e.type||''}</td>
-        <td style="color:var(--t2)">${e.lang||''}</td>
-        <td><span class="dot dot-g"></span>啟用</td>
-      </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--t2);padding:1.5rem">尚無資料</td></tr>';
-  } catch(e) {}
-}
-
-function openAddEmail() { openOv('email-ov'); }
-async function submitAddEmail() {
-  const d = { name:document.getElementById('add-em-name').value.trim(), email:document.getElementById('add-em-email').value.trim(), type:document.getElementById('add-em-type').value, lang:document.getElementById('add-em-lang').value };
-  if (!d.email) { toast('⚠ 請填入 Email'); return; }
-  try { await postGAS('addEmail',d); closeOv('email-ov'); await loadEmails(); toast('✓ 已新增'); } catch(e){ toast('✗ '+e.message); }
-}
-
-// ════════════════════════════════════════════
-// SETTINGS
-// ════════════════════════════════════════════
-function loadSettingsForm() {
-  const c = LS.get('cfg') || {};
-  document.getElementById('cfg-gas').value   = c.gasUrl   || '';
-  document.getElementById('cfg-lang').value  = c.lang     || 'zh-TW';
-  document.getElementById('cfg-limit').value = c.limit    || 8;
-}
-function saveSettings() {
-  const cfg = {
-    gasUrl: document.getElementById('cfg-gas').value.trim(),
-    lang:   document.getElementById('cfg-lang').value,
-    limit:  parseInt(document.getElementById('cfg-limit').value)||8,
-  };
-  LS.set('cfg', cfg);
-  APP.gasUrl = cfg.gasUrl;
-  toast('✓ 設定已儲存');
-}
-
-// ════════════════════════════════════════════
-// PROGRESS & MODAL & TOAST
-// ════════════════════════════════════════════
-function setProgress(p) {
-  const w = document.getElementById('prog-wrap');
-  const b = document.getElementById('prog-bar');
-  if (p<=0) { w.style.display='none'; b.style.width='0%'; return; }
-  w.style.display='block'; b.style.width=p+'%';
-}
-function openOv(id) { document.getElementById(id).classList.add('open'); }
-function closeOv(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.ov').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)closeOv(ov.id);}));
-
-let _tt;
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(_tt); _tt = setTimeout(()=>el.classList.remove('show'), 3500);
-}
-</script>
+                if (result.success) {
+                    alert("✅ 紀錄已儲存");
+                    document.getElementById('customer').value = "";
+                    document.getElementById('link').value = "";
+                    await fetchUserRecords();
+                }
+            } catch (e) {
+                alert("❌ 儲存失敗");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerText = "儲存紀錄";
+            }
+        }
+    </script>
 </body>
 </html>
