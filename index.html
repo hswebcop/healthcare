@@ -229,15 +229,6 @@ textarea.inp{resize:vertical;height:80px}
       <div class="chip"><span>● Health Intel Hub v3</span></div>
       <h1>保健食品情報中心</h1>
     </div>
-    <div id="gas-setup" style="display:none;margin-bottom:1rem;padding:.8rem;background:var(--ambg);border:1px solid var(--am);border-radius:var(--r)">
-      <div style="font-size:.72rem;color:var(--am);font-weight:700;margin-bottom:.4rem">⚠ 首次使用：請先填入 Apps Script URL</div>
-      <input id="l-gas" class="inp full" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:.78rem;margin-bottom:.4rem">
-      <div style="display:flex;gap:.4rem">
-        <button class="btn" style="flex:1;font-size:.78rem" onclick="testGasUrl()">🔌 測試連線</button>
-        <button class="btn p" style="flex:1;font-size:.78rem" onclick="saveGasUrl()">↓ 儲存</button>
-      </div>
-      <div id="gas-test-result" style="font-size:.72rem;margin-top:.4rem;display:none"></div>
-    </div>
     <div class="fg"><label>帳號</label><input id="l-user" type="text" autocomplete="username" placeholder="請輸入帳號"></div>
     <div class="fg"><label>密碼</label><input id="l-pass" type="password" autocomplete="current-password" placeholder="請輸入密碼"></div>
     <button class="btn-login" onclick="doLogin()">登入系統</button>
@@ -361,7 +352,7 @@ textarea.inp{resize:vertical;height:80px}
         <div class="tbar-r"><button class="btn p" onclick="openAddSite()">＋ 新增來源</button></div>
       </div>
       <div class="tbl-box">
-        <table><thead><tr><th>來源名稱</th><th>網址</th><th>地區</th><th>類型</th><th>需登入</th><th>抓取頻率</th><th>上次抓取</th><th>狀態</th><th>操作</th></tr></thead>
+        <table><thead><tr><th>來源名稱</th><th>網址</th><th>地區</th><th>類型</th><th>需登入</th><th>頻率</th><th>上次抓取</th><th>狀態</th><th>操作</th></tr></thead>
         <tbody id="sites-tbody"></tbody></table>
       </div>
     </div>
@@ -374,7 +365,7 @@ textarea.inp{resize:vertical;height:80px}
       </div>
       <div class="sh">監測關鍵字</div>
       <div class="tbl-box">
-        <table><thead><tr><th>繁體中文</th><th>簡體中文</th><th>類別</th><th>優先度</th><th>權重</th><th>今日次數</th><th>操作</th></tr></thead>
+        <table><thead><tr><th>繁體中文</th><th>簡體中文</th><th>類別</th><th>優先度</th><th>權重</th><th>今日次數</th><th>狀態</th><th>操作</th></tr></thead>
         <tbody id="kw-tbody"></tbody></table>
       </div>
       <div class="sh" style="margin-top:1.4rem">Synonym_Map — 多國同義字對照</div>
@@ -402,7 +393,7 @@ textarea.inp{resize:vertical;height:80px}
       <div style="margin-top:.7rem"><button class="btn" onclick="loadUsers()">↻ 重新載入</button></div>
       <div class="sh" style="margin-top:1.4rem">Email 通知清單</div>
       <div class="tbl-box">
-        <table><thead><tr><th>姓名</th><th>Email</th><th>類型</th><th>語言</th><th>狀態</th></tr></thead>
+        <table><thead><tr><th>姓名</th><th>Email</th><th>類型</th><th>語言</th><th>狀態</th><th>操作</th></tr></thead>
         <tbody id="email-tbody"></tbody></table>
       </div>
       <div style="margin-top:.7rem"><button class="btn p" onclick="openAddEmail()">＋ 新增收件者</button></div>
@@ -493,12 +484,106 @@ textarea.inp{resize:vertical;height:80px}
   </div>
 </div>
 
-<!-- ADD/EDIT KEYWORD MODAL -->
+<!-- ADD KEYWORD MODAL -->
 <div class="ov" id="kw-ov">
-  <div class="modal" style="width:500px">
-    <div class="mh"><h3 id="kw-ov-title">新增監測關鍵字</h3><button class="mclose" onclick="closeOv('kw-ov')">✕</button></div>
+  <div class="modal" style="width:480px">
+    <div class="mh"><h3>新增監測關鍵字</h3><button class="mclose" onclick="closeOv('kw-ov')">✕</button></div>
     <div class="mbody">
-      <input type="hidden" id="add-kw-idx">
+      <div class="fg"><label>關鍵字（中文）</label><input class="inp full" id="add-kw-word"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+        <div class="fg"><label>類別</label><input class="inp full" id="add-kw-cat" placeholder="如：腸道健康"></div>
+        <div class="fg"><label>優先度</label>
+          <select class="inp full" id="add-kw-pri"><option>高</option><option>中</option><option>低</option></select></div>
+      </div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
+        <button class="btn" onclick="closeOv('kw-ov')">取消</button>
+        <button class="btn p" onclick="submitAddKw()">新增</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SYNONYM MODAL -->
+<div class="ov" id="syn-ov">
+  <div class="modal" style="width:540px">
+    <div class="mh"><h3>新增同義字組</h3><button class="mclose" onclick="closeOv('syn-ov')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><label>標準詞（中文）</label><input class="inp full" id="add-syn-std"></div>
+      <div class="fg"><label>中文同義字（逗號分隔）</label><input class="inp full" id="add-syn-zh" placeholder="乳酸菌,益菌,好菌"></div>
+      <div class="fg"><label>英文同義字（逗號分隔）</label><input class="inp full" id="add-syn-en" placeholder="Probiotics,Lactobacillus"></div>
+      <div class="fg"><label>日文同義字</label><input class="inp full" id="add-syn-jp" placeholder="プロバイオティクス"></div>
+      <div class="fg"><label>韓文同義字</label><input class="inp full" id="add-syn-kr" placeholder="유산균"></div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
+        <button class="btn" onclick="closeOv('syn-ov')">取消</button>
+        <button class="btn p" onclick="submitAddSyn()">新增</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EMAIL MODAL -->
+<div class="ov" id="email-ov">
+  <div class="modal" style="width:460px">
+    <div class="mh"><h3>新增 Email 收件者</h3><button class="mclose" onclick="closeOv('email-ov')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><label>姓名</label><input class="inp full" id="add-em-name"></div>
+      <div class="fg"><label>Email</label><input class="inp full" id="add-em-email" type="email"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+        <div class="fg"><label>類型</label>
+          <select class="inp full" id="add-em-type"><option>每日摘要</option><option>每週彙整</option></select></div>
+        <div class="fg"><label>語言</label>
+          <select class="inp full" id="add-em-lang"><option>繁中</option><option>簡中</option><option>英文</option></select></div>
+      </div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
+        <button class="btn" onclick="closeOv('email-ov')">取消</button>
+        <button class="btn p" onclick="submitAddEmail()">新增</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD / EDIT SITE MODAL -->
+<div class="ov" id="site-ov">
+  <div class="modal" style="width:540px">
+    <div class="mh"><h3 id="site-ov-title">新增監控來源</h3><button class="mclose" onclick="closeOv('site-ov')">✕</button></div>
+    <div class="mbody">
+      <input type="hidden" id="site-orig-name">
+      <div class="fg"><label>來源名稱</label><input class="inp full" id="add-site-name"></div>
+      <div class="fg"><label>網址</label><input class="inp full" id="add-site-url" placeholder="https://"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+        <div class="fg"><label>地區</label>
+          <select class="inp full" id="add-site-region">
+            <option value="tw">🇹🇼 台灣</option><option value="jp">🇯🇵 日本</option>
+            <option value="cn">🇨🇳 中國</option><option value="kr">🇰🇷 韓國</option>
+            <option value="eu">🇪🇺 歐洲</option><option value="us">🇺🇸 美國</option>
+          </select></div>
+        <div class="fg"><label>類型</label>
+          <select class="inp full" id="add-site-type">
+            <option>新聞</option><option>論文</option><option>雜誌</option>
+            <option>政府</option><option>協會</option>
+          </select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+        <div class="fg"><label>需登入</label>
+          <select class="inp full" id="add-site-login"><option value="N">不需要</option><option value="Y">需要</option></select></div>
+        <div class="fg"><label>抓取頻率</label>
+          <select class="inp full" id="add-site-freq"><option>每日</option><option>每週</option></select></div>
+      </div>
+      <div class="fg"><label>備註</label><input class="inp full" id="add-site-note"></div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
+        <button class="btn" onclick="closeOv('site-ov')">取消</button>
+        <button class="btn p" onclick="submitSite()">儲存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD / EDIT KEYWORD MODAL -->
+<div class="ov" id="kw-ov">
+  <div class="modal" style="width:520px">
+    <div class="mh"><h3 id="kw-ov-title">新增關鍵字</h3><button class="mclose" onclick="closeOv('kw-ov')">✕</button></div>
+    <div class="mbody">
+      <input type="hidden" id="kw-orig">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
         <div class="fg"><label>繁體中文關鍵字</label><input class="inp full" id="add-kw-word" placeholder="益生菌"></div>
         <div class="fg"><label>簡體中文關鍵字</label><input class="inp full" id="add-kw-wordcn" placeholder="益生菌"></div>
@@ -506,34 +591,33 @@ textarea.inp{resize:vertical;height:80px}
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem">
         <div class="fg"><label>類別</label><input class="inp full" id="add-kw-cat" placeholder="腸道健康"></div>
         <div class="fg"><label>優先度</label>
-          <select class="inp full" id="add-kw-pri"><option>高</option><option selected>中</option><option>低</option></select>
-        </div>
+          <select class="inp full" id="add-kw-pri"><option>高</option><option selected>中</option><option>低</option></select></div>
         <div class="fg"><label>權重分數</label>
-          <input class="inp full" id="add-kw-weight" type="number" value="2" min="1" max="10">
-        </div>
+          <input class="inp full" id="add-kw-weight" type="number" value="2" min="1" max="10"></div>
       </div>
       <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
         <button class="btn" onclick="closeOv('kw-ov')">取消</button>
-        <button class="btn p" onclick="submitAddKw()">儲存</button>
+        <button class="btn p" onclick="submitKw()">儲存</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ADD/EDIT SYNONYM MODAL -->
+<!-- ADD / EDIT SYNONYM MODAL -->
 <div class="ov" id="syn-ov">
   <div class="modal" style="width:560px">
     <div class="mh"><h3 id="syn-ov-title">新增同義字組</h3><button class="mclose" onclick="closeOv('syn-ov')">✕</button></div>
     <div class="mbody">
+      <input type="hidden" id="syn-orig">
       <div class="fg"><label>標準詞（繁體中文）</label><input class="inp full" id="add-syn-std"></div>
       <div class="fg"><label>繁體中文同義字（逗號分隔）</label><input class="inp full" id="add-syn-zh" placeholder="乳酸菌,益菌,好菌"></div>
       <div class="fg"><label>簡體中文同義字（逗號分隔）</label><input class="inp full" id="add-syn-zhcn" placeholder="益生菌,乳酸菌,有益菌"></div>
       <div class="fg"><label>英文同義字（逗號分隔）</label><input class="inp full" id="add-syn-en" placeholder="Probiotics,Lactobacillus"></div>
-      <div class="fg"><label>日文同義字</label><input class="inp full" id="add-syn-jp" placeholder="プロバイオティクス,乳酸菌"></div>
-      <div class="fg"><label>韓文同義字</label><input class="inp full" id="add-syn-kr" placeholder="유산균,프로바이오틱스"></div>
+      <div class="fg"><label>日文同義字</label><input class="inp full" id="add-syn-jp" placeholder="プロバイオティクス"></div>
+      <div class="fg"><label>韓文同義字</label><input class="inp full" id="add-syn-kr" placeholder="유산균"></div>
       <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
         <button class="btn" onclick="closeOv('syn-ov')">取消</button>
-        <button class="btn p" onclick="submitAddSyn()">新增</button>
+        <button class="btn p" onclick="submitSyn()">儲存</button>
       </div>
     </div>
   </div>
@@ -574,6 +658,7 @@ const LS = {
 
 let APP = {
   user: null,
+  isAdmin: false,   // true = admin，false = 一般人員（只可新增）
   gasUrl: '',
   results: [],
   kwCounts: {},
@@ -591,89 +676,6 @@ const KW_COLORS = ['#00c9a7','#4da8f0','#f0b44d','#b48df0','#4df09a','#f06068','
 // ════════════════════════════════════════════
 // AUTH
 // ════════════════════════════════════════════
-
-// 頁面載入時檢查是否已有 GAS URL
-(function checkGasOnLoad() {
-  const cfg = LS.get('cfg') || {};
-  if (!cfg.gasUrl) {
-    document.getElementById('gas-setup').style.display = 'block';
-    const saved = LS.get('lastGasUrl') || '';
-    if (saved) document.getElementById('l-gas').value = saved;
-  }
-})();
-
-function saveGasUrl() {
-  const url = document.getElementById('l-gas').value.trim();
-  if (!url || !url.includes('script.google.com')) {
-    showErr('請輸入正確的 Apps Script URL（含 /exec）');
-    return;
-  }
-  const cfg = LS.get('cfg') || {};
-  cfg.gasUrl = url;
-  LS.set('cfg', cfg);
-  document.getElementById('gas-setup').style.display = 'none';
-  showMsg('✓ URL 已儲存，請繼續登入');
-}
-
-async function testGasUrl() {
-  const url = document.getElementById('l-gas').value.trim();
-  if (!url) { showErr('請先填入 URL'); return; }
-  const el = document.getElementById('gas-test-result');
-  el.style.display = 'block';
-  el.style.color = 'var(--am)';
-  el.textContent = '測試中…';
-  try {
-    const d = await callGAS(url, 'ping', {});
-    if (d && d.status === 'ok') {
-      el.style.color = 'var(--g)';
-      el.textContent = '✓ 連線成功！GAS 版本：' + (d.version || '?');
-    } else {
-      el.style.color = 'var(--rd)';
-      el.textContent = '✗ GAS 回傳錯誤：' + JSON.stringify(d);
-    }
-  } catch(e) {
-    el.style.color = 'var(--rd)';
-    el.textContent = '✗ 連線失敗：' + e.message;
-  }
-}
-
-/**
- * 核心 GAS 呼叫函式：使用 JSONP 方式，完全繞過 CORS 限制
- * GAS Web App 的 doGet 天然支援 JSONP（透過 callback 參數）
- */
-function callGAS(gasUrl, action, params) {
-  return new Promise((resolve, reject) => {
-    const cbName = '_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-    const timeout = setTimeout(() => {
-      delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error('連線逾時（15秒），請確認 GAS URL 正確且已部署'));
-    }, 15000);
-
-    window[cbName] = function(data) {
-      clearTimeout(timeout);
-      delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-      resolve(data);
-    };
-
-    // 組合 URL：加入 callback 參數讓 GAS 以 JSONP 回傳
-    let url = gasUrl + '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
-    Object.entries(params || {}).forEach(([k, v]) => {
-      url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(v);
-    });
-
-    const script = document.createElement('script');
-    script.src = url;
-    script.onerror = () => {
-      clearTimeout(timeout);
-      delete window[cbName];
-      reject(new Error('Script 載入失敗，請確認 GAS URL 正確'));
-    };
-    document.head.appendChild(script);
-  });
-}
-
 async function doLogin() {
   const u = document.getElementById('l-user').value.trim();
   const p = document.getElementById('l-pass').value;
@@ -681,10 +683,8 @@ async function doLogin() {
 
   const cfg    = LS.get('cfg') || {};
   const gasUrl = cfg.gasUrl || '';
-
   if (!gasUrl) {
-    document.getElementById('gas-setup').style.display = 'block';
-    showErr('請先填入並儲存 Apps Script URL');
+    showErr('請先在「系統設定」填入 Apps Script URL 並儲存，再登入');
     return;
   }
 
@@ -692,14 +692,14 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = '驗證中…';
 
   try {
-    // 使用 JSONP 呼叫，完全繞過 CORS
     const d = await callGAS(gasUrl, 'login', { u, p });
     if (d && d.status === 'ok') {
-      APP.gasUrl = gasUrl;
-      APP.user   = d.user || { account: u };
+      APP.gasUrl  = gasUrl;
+      APP.user    = d.user || { account: u, nameZh: u, role: 'viewer' };
+      APP.isAdmin = (APP.user.role || '').toLowerCase() === 'admin';
       document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      const name = (APP.user.nameZh) || u;
+      document.getElementById('app').style.display          = 'block';
+      const name = APP.user.nameZh || u;
       document.getElementById('u-nm').textContent = name;
       document.getElementById('u-av').textContent = name[0].toUpperCase();
       document.getElementById('today-dt').textContent =
@@ -709,37 +709,21 @@ async function doLogin() {
       showErr((d && d.message) || '帳號或密碼錯誤');
     }
   } catch(e) {
-    console.error('Login error:', e);
     showErr('連線失敗：' + e.message);
+    console.error('Login error:', e);
   } finally {
     btn.disabled = false; btn.textContent = '登入系統';
   }
 }
 
-function showErr(msg) {
-  const e = document.getElementById('l-err');
-  e.textContent = msg; e.style.color = 'var(--rd)'; e.style.display = 'block';
-  setTimeout(() => e.style.display = 'none', 5000);
-}
-function showMsg(msg) {
-  const e = document.getElementById('l-err');
-  e.textContent = msg; e.style.color = 'var(--g)'; e.style.display = 'block';
-  setTimeout(() => { e.style.display = 'none'; e.style.color = 'var(--rd)'; }, 3000);
-}
-function clearCache() {
-  if (confirm('清除所有本地快取？')) {
-    Object.keys(localStorage).filter(k => k.startsWith(AK)).forEach(k => localStorage.removeItem(k));
-    location.reload();
-  }
-}
 function doLogout() {
-  APP.user = null;
+  APP.user = null; APP.isAdmin = false;
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('l-pass').value = '';
 }
-document.getElementById('l-pass').addEventListener('keydown', e=>e.key==='Enter'&&doLogin());
-document.getElementById('l-user').addEventListener('keydown', e=>e.key==='Enter'&&document.getElementById('l-pass').focus());
+document.getElementById('l-pass').addEventListener('keydown', e => e.key === 'Enter' && doLogin());
+document.getElementById('l-user').addEventListener('keydown', e => e.key === 'Enter' && document.getElementById('l-pass').focus());
 
 // ════════════════════════════════════════════
 // NAVIGATION
@@ -768,25 +752,48 @@ function initApp() {
 }
 
 // ════════════════════════════════════════════
-// GAS API HELPERS（全部使用 JSONP，完全無 CORS 問題）
+// GAS API HELPERS（JSONP 完全無 CORS）
 // ════════════════════════════════════════════
+function callGAS(gasUrl, action, params) {
+  return new Promise((resolve, reject) => {
+    const cb = '_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const timer = setTimeout(() => {
+      delete window[cb];
+      if (sc.parentNode) sc.parentNode.removeChild(sc);
+      reject(new Error('連線逾時，請確認 GAS URL 正確且已重新部署'));
+    }, 20000);
+    window[cb] = data => {
+      clearTimeout(timer); delete window[cb];
+      if (sc.parentNode) sc.parentNode.removeChild(sc);
+      resolve(data);
+    };
+    let url = gasUrl + '?action=' + encodeURIComponent(action) + '&callback=' + cb;
+    Object.entries(params || {}).forEach(([k, v]) => {
+      url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(v);
+    });
+    const sc = document.createElement('script');
+    sc.src = url;
+    sc.onerror = () => {
+      clearTimeout(timer); delete window[cb];
+      reject(new Error('GAS 連線失敗，請確認 URL 是否正確'));
+    };
+    document.head.appendChild(sc);
+  });
+}
 async function getGAS(action, params) {
   return callGAS(APP.gasUrl, action, params || {});
 }
-
-// doPost 仍用 fetch，但 GAS 部署為「任何人」時不會有 CORS 問題
-// 若仍有問題，改由 doGet + JSONP 處理寫入操作
 async function postGAS(action, data) {
+  // 先試 POST（Content-Type: text/plain 避免 preflight）
   try {
     const res = await fetch(APP.gasUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' }, // 避免 preflight，用 text/plain
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action, data }),
     });
     return await res.json();
   } catch(e) {
-    // POST 失敗時改用 GET + JSONP（把資料 JSON 後 base64 編碼）
-    console.warn('POST 失敗，改用 GET：', e.message);
+    // fallback：把 data base64 後用 JSONP GET
     const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
     return callGAS(APP.gasUrl, action, { d: b64 });
   }
@@ -997,22 +1004,48 @@ async function loadWebsites() {
 }
 
 function renderWebsites() {
-  document.getElementById('sites-tbody').innerHTML = APP.websites.map((s,i)=>`
+  const adminBtns = (name, i) => APP.isAdmin
+    ? `<button class="btn sm" onclick="editSite(${i})" style="margin-right:.3rem">編輯</button>
+       <button class="btn sm warn" onclick="removeSite('${name}')">刪除</button>`
+    : '';
+  document.getElementById('sites-tbody').innerHTML = APP.websites.map((s, i) => `
     <tr>
       <td style="font-weight:500">${s['來源名稱']||''}</td>
-      <td><a href="${s['網址']||'#'}" target="_blank" style="font-size:.76rem">${(s['網址']||'').substring(0,40)}</a></td>
-      <td><span class="bde ${s['地區']||''}">${REGION[s['地區']]||s['地區']}</span></td>
-      <td style="color:var(--t1)">${s['類型']||''}</td>
-      <td>${s['需登入']==='Y'?'<span style="color:var(--am)">需要</span>':'—'}</td>
+      <td><a href="${s['網址']||'#'}" target="_blank" style="font-size:.76rem">${(s['網址']||'').substring(0,38)}${(s['網址']||'').length>38?'…':''}</a></td>
+      <td><span class="bde ${s['地區']||''}">${REGION[s['地區']]||s['地區']||''}</span></td>
+      <td style="color:var(--t1);font-size:.8rem">${s['類型']||''}</td>
+      <td style="font-size:.8rem">${s['需登入']==='Y'?'<span style="color:var(--am)">需要</span>':'—'}</td>
       <td style="color:var(--t2);font-size:.78rem">${s['抓取頻率']||''}</td>
       <td style="font-family:var(--mono);font-size:.72rem;color:var(--t2)">${s['上次抓取']||'—'}</td>
       <td><span class="dot dot-${s['狀態']==='啟用'?'g':'r'}"></span>${s['狀態']||''}</td>
-      <td><button class="btn sm warn" onclick="removeSite('${s['來源名稱']}')">移除</button></td>
+      <td>${adminBtns(s['來源名稱'], i)}</td>
     </tr>`).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--t2);padding:1.5rem">尚無資料</td></tr>';
 }
 
-function openAddSite() { openOv('site-ov'); }
-async function submitAddSite() {
+function openAddSite() {
+  ['site-orig-name','add-site-name','add-site-url','add-site-note'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('add-site-region').value = 'tw';
+  document.getElementById('add-site-type').value   = '新聞';
+  document.getElementById('add-site-login').value  = 'N';
+  document.getElementById('add-site-freq').value   = '每日';
+  document.getElementById('site-ov-title').textContent = '新增監控來源';
+  openOv('site-ov');
+}
+function editSite(i) {
+  const s = APP.websites[i]; if (!s) return;
+  document.getElementById('site-orig-name').value  = s['來源名稱'] || '';
+  document.getElementById('add-site-name').value   = s['來源名稱'] || '';
+  document.getElementById('add-site-url').value    = s['網址']     || '';
+  document.getElementById('add-site-region').value = s['地區']     || 'tw';
+  document.getElementById('add-site-type').value   = s['類型']     || '新聞';
+  document.getElementById('add-site-login').value  = s['需登入']   || 'N';
+  document.getElementById('add-site-freq').value   = s['抓取頻率'] || '每日';
+  document.getElementById('add-site-note').value   = s['備註']     || '';
+  document.getElementById('site-ov-title').textContent = '編輯來源';
+  openOv('site-ov');
+}
+async function submitSite() {
+  const orig = document.getElementById('site-orig-name').value;
   const d = {
     name:   document.getElementById('add-site-name').value.trim(),
     url:    document.getElementById('add-site-url').value.trim(),
@@ -1022,21 +1055,23 @@ async function submitAddSite() {
     freq:   document.getElementById('add-site-freq').value,
     note:   document.getElementById('add-site-note').value.trim(),
   };
-  if (!d.name||!d.url) { toast('⚠ 請填入名稱和網址'); return; }
+  if (!d.name || !d.url) { toast('⚠ 請填入名稱和網址'); return; }
   try {
-    await postGAS('addWebsite', d);
+    const action = orig ? 'updateWebsite' : 'addWebsite';
+    if (orig) d.originalName = orig;
+    await postGAS(action, d);
     closeOv('site-ov');
     await loadWebsites();
-    toast('✓ 已新增：'+d.name);
-  } catch(e) { toast('✗ '+e.message); }
+    toast('✓ ' + (orig ? '已更新：' : '已新增：') + d.name);
+  } catch(e) { toast('✗ ' + e.message); }
 }
 async function removeSite(name) {
-  if (!confirm('確認移除：'+name+'？')) return;
+  if (!confirm('確認刪除來源：' + name + '？')) return;
   try {
-    await postGAS('removeWebsite', {name});
+    await postGAS('removeWebsite', { name });
     await loadWebsites();
-    toast('✓ 已移除');
-  } catch(e) { toast('✗ '+e.message); }
+    toast('✓ 已刪除：' + name);
+  } catch(e) { toast('✗ ' + e.message); }
 }
 
 // ════════════════════════════════════════════
@@ -1047,35 +1082,97 @@ async function loadKeywords() {
     const d = await getGAS('getKeywords', {});
     APP.keywords = d.data || [];
     renderKeywords();
-  } catch(e) { toast('✗ 載入關鍵字失敗：'+e.message); }
+  } catch(e) { toast('✗ '+e.message); }
 }
 
 function renderKeywords() {
   const tbody = document.getElementById('kw-tbody');
   if (!APP.keywords.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t2);padding:1.5rem">尚無資料</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--t2);padding:1.5rem">尚無資料</td></tr>';
     return;
   }
   tbody.innerHTML = APP.keywords.map((k, i) => {
     const kw   = k['關鍵字(繁中)'] || k['關鍵字(中文)'] || '';
     const kwCN = k['關鍵字(簡中)'] || '';
     const pri  = k['優先度'] || '中';
+    const en   = String(k['啟用'] || 'Y').toUpperCase() === 'Y';
     const cnt  = APP.kwCounts[kw] || 0;
+    const adminBtns = APP.isAdmin
+      ? `<button class="btn sm" onclick="editKw(${i})" style="margin-right:.3rem">編輯</button>
+         <button class="btn sm warn" onclick="removeKw('${kw}')">刪除</button>`
+      : '';
     return `<tr>
       <td style="font-weight:600;color:var(--g)">${kw}</td>
-      <td style="color:var(--t2);font-size:.78rem">${kwCN||'—'}</td>
-      <td style="color:var(--t1)">${k['類別']||''}</td>
+      <td style="color:var(--t2);font-size:.78rem">${kwCN || '—'}</td>
+      <td style="color:var(--t1);font-size:.8rem">${k['類別'] || ''}</td>
       <td><span class="bde ${pri==='高'?'score-hi':pri==='中'?'score-mid':'score-lo'}">${pri}</span></td>
-      <td style="font-family:var(--mono);color:var(--am);font-weight:600">${k['權重分數']||2}</td>
-      <td style="font-family:var(--mono);color:var(--bl)">${cnt}</td>
+      <td style="font-family:var(--mono);color:var(--am);text-align:center">${k['權重分數'] || 2}</td>
+      <td style="font-family:var(--mono);color:var(--bl);text-align:center">${cnt}</td>
       <td>
-        <button class="btn sm" onclick="editKw(${i})">編輯</button>
-        <button class="btn sm warn" onclick="toggleKw(${i})">
-          ${String(k['啟用']||'Y').toUpperCase()==='Y'?'停用':'啟用'}
+        <button class="btn sm" onclick="toggleKw('${kw}','${en?'N':'Y'}')" style="color:${en?'var(--g)':'var(--rd)'}">
+          ${en ? '啟用' : '停用'}
         </button>
       </td>
+      <td>${adminBtns}</td>
     </tr>`;
   }).join('');
+}
+
+function openAddKw() {
+  document.getElementById('kw-orig').value      = '';
+  document.getElementById('add-kw-word').value  = '';
+  document.getElementById('add-kw-wordcn').value= '';
+  document.getElementById('add-kw-cat').value   = '';
+  document.getElementById('add-kw-pri').value   = '中';
+  document.getElementById('add-kw-weight').value= '2';
+  document.getElementById('kw-ov-title').textContent = '新增關鍵字';
+  openOv('kw-ov');
+}
+function editKw(i) {
+  const k = APP.keywords[i]; if (!k) return;
+  const kw = k['關鍵字(繁中)'] || k['關鍵字(中文)'] || '';
+  document.getElementById('kw-orig').value       = kw;
+  document.getElementById('add-kw-word').value   = kw;
+  document.getElementById('add-kw-wordcn').value = k['關鍵字(簡中)'] || '';
+  document.getElementById('add-kw-cat').value    = k['類別'] || '';
+  document.getElementById('add-kw-pri').value    = k['優先度'] || '中';
+  document.getElementById('add-kw-weight').value = k['權重分數'] || 2;
+  document.getElementById('kw-ov-title').textContent = '編輯關鍵字';
+  openOv('kw-ov');
+}
+async function submitKw() {
+  const orig = document.getElementById('kw-orig').value;
+  const d = {
+    keyword:    document.getElementById('add-kw-word').value.trim(),
+    keywordCN:  document.getElementById('add-kw-wordcn').value.trim(),
+    category:   document.getElementById('add-kw-cat').value.trim(),
+    priority:   document.getElementById('add-kw-pri').value,
+    weight:     parseInt(document.getElementById('add-kw-weight').value) || 2,
+  };
+  if (!d.keyword) { toast('⚠ 請填入關鍵字'); return; }
+  if (orig) d.originalKeyword = orig;
+  const action = orig ? 'updateKeyword' : 'addKeyword';
+  try {
+    await postGAS(action, d);
+    closeOv('kw-ov');
+    await loadKeywords();
+    toast('✓ ' + (orig ? '已更新：' : '已新增：') + d.keyword);
+  } catch(e) { toast('✗ ' + e.message); }
+}
+async function toggleKw(kw, newVal) {
+  try {
+    await postGAS('toggleKeyword', { keyword: kw, value: newVal });
+    await loadKeywords();
+    toast('✓ ' + kw + ' 已' + (newVal === 'Y' ? '啟用' : '停用'));
+  } catch(e) { toast('✗ ' + e.message); }
+}
+async function removeKw(kw) {
+  if (!confirm('確認刪除關鍵字：' + kw + '？')) return;
+  try {
+    await postGAS('removeKeyword', { keyword: kw });
+    await loadKeywords();
+    toast('✓ 已刪除：' + kw);
+  } catch(e) { toast('✗ ' + e.message); }
 }
 
 async function loadSynonyms() {
@@ -1083,92 +1180,53 @@ async function loadSynonyms() {
     const d = await getGAS('getSynonyms', {});
     APP.synonyms = d.data || [];
     renderSynonyms();
-  } catch(e) { toast('✗ 載入同義字失敗：'+e.message); }
+  } catch(e) {}
 }
 
 function renderSynonyms() {
-  document.getElementById('syn-tbody').innerHTML = APP.synonyms.map((s, i) => `
-    <tr>
-      <td style="font-weight:600;color:var(--pu)">${s['標準詞']||''}</td>
+  const tbody = document.getElementById('syn-tbody');
+  if (!APP.synonyms.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t2);padding:1.5rem">尚無資料</td></tr>';
+    return;
+  }
+  tbody.innerHTML = APP.synonyms.map((s, i) => {
+    const std = s['標準詞'] || '';
+    const adminBtns = APP.isAdmin
+      ? `<button class="btn sm" onclick="editSyn(${i})" style="margin-right:.3rem">編輯</button>
+         <button class="btn sm warn" onclick="removeSyn('${std.replace(/'/g,"\\'")}')">刪除</button>`
+      : '';
+    return `<tr>
+      <td style="font-weight:600;color:var(--pu)">${std}</td>
       <td style="font-size:.76rem;color:var(--t1)">${s['繁體中文同義字']||s['中文同義字']||'—'}</td>
       <td style="font-size:.76rem;color:var(--t1)">${s['簡體中文同義字']||'—'}</td>
       <td style="font-size:.76rem;color:var(--t2)">${s['英文同義字']||'—'}</td>
       <td style="font-size:.76rem;color:var(--t2)">${s['日文同義字']||'—'}</td>
       <td style="font-size:.76rem;color:var(--t2)">${s['韓文同義字']||'—'}</td>
-      <td><button class="btn sm" onclick="editSyn(${i})">編輯</button></td>
-    </tr>`).join('');
-}
-
-function openAddKw() {
-  // 清空欄位
-  ['add-kw-word','add-kw-wordcn','add-kw-cat'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('add-kw-pri').value = '中';
-  document.getElementById('add-kw-weight').value = '2';
-  document.getElementById('kw-ov-title').textContent = '新增監測關鍵字';
-  document.getElementById('add-kw-idx').value = '';
-  openOv('kw-ov');
-}
-
-function editKw(i) {
-  const k = APP.keywords[i]; if (!k) return;
-  document.getElementById('add-kw-word').value   = k['關鍵字(繁中)']||k['關鍵字(中文)']||'';
-  document.getElementById('add-kw-wordcn').value = k['關鍵字(簡中)']||'';
-  document.getElementById('add-kw-cat').value    = k['類別']||'';
-  document.getElementById('add-kw-pri').value    = k['優先度']||'中';
-  document.getElementById('add-kw-weight').value = k['權重分數']||2;
-  document.getElementById('kw-ov-title').textContent = '編輯關鍵字';
-  document.getElementById('add-kw-idx').value = i;
-  openOv('kw-ov');
-}
-
-function toggleKw(i) {
-  const k = APP.keywords[i]; if (!k) return;
-  const cur = String(k['啟用']||'Y').toUpperCase();
-  const newVal = cur === 'Y' ? 'N' : 'Y';
-  const kw = k['關鍵字(繁中)']||k['關鍵字(中文)']||'';
-  postGAS('updateKeyword', { keyword: kw, field: '啟用', value: newVal })
-    .then(() => { loadKeywords(); toast(`✓ ${kw} 已${newVal==='Y'?'啟用':'停用'}`); })
-    .catch(e => toast('✗ '+e.message));
-}
-
-async function submitAddKw() {
-  const d = {
-    keyword:   document.getElementById('add-kw-word').value.trim(),
-    keywordCN: document.getElementById('add-kw-wordcn').value.trim(),
-    category:  document.getElementById('add-kw-cat').value.trim(),
-    priority:  document.getElementById('add-kw-pri').value,
-    weight:    parseInt(document.getElementById('add-kw-weight').value)||2,
-  };
-  if (!d.keyword) { toast('⚠ 請填入關鍵字（繁體中文）'); return; }
-  try {
-    await postGAS('addKeyword', d);
-    closeOv('kw-ov');
-    await loadKeywords();
-    toast('✓ 已新增：' + d.keyword);
-  } catch(e) { toast('✗ '+e.message); }
+      <td>${adminBtns}</td>
+    </tr>`;
+  }).join('');
 }
 
 function openAddSyn() {
-  ['add-syn-std','add-syn-zh','add-syn-zhcn','add-syn-en','add-syn-jp','add-syn-kr'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
+  ['syn-orig','add-syn-std','add-syn-zh','add-syn-zhcn','add-syn-en','add-syn-jp','add-syn-kr']
+    .forEach(id => document.getElementById(id).value = '');
   document.getElementById('syn-ov-title').textContent = '新增同義字組';
   openOv('syn-ov');
 }
-
 function editSyn(i) {
   const s = APP.synonyms[i]; if (!s) return;
-  document.getElementById('add-syn-std').value   = s['標準詞']||'';
-  document.getElementById('add-syn-zh').value    = s['繁體中文同義字']||s['中文同義字']||'';
-  document.getElementById('add-syn-zhcn').value  = s['簡體中文同義字']||'';
-  document.getElementById('add-syn-en').value    = s['英文同義字']||'';
-  document.getElementById('add-syn-jp').value    = s['日文同義字']||'';
-  document.getElementById('add-syn-kr').value    = s['韓文同義字']||'';
+  document.getElementById('syn-orig').value     = s['標準詞'] || '';
+  document.getElementById('add-syn-std').value  = s['標準詞'] || '';
+  document.getElementById('add-syn-zh').value   = s['繁體中文同義字'] || s['中文同義字'] || '';
+  document.getElementById('add-syn-zhcn').value = s['簡體中文同義字'] || '';
+  document.getElementById('add-syn-en').value   = s['英文同義字'] || '';
+  document.getElementById('add-syn-jp').value   = s['日文同義字'] || '';
+  document.getElementById('add-syn-kr').value   = s['韓文同義字'] || '';
   document.getElementById('syn-ov-title').textContent = '編輯同義字組';
   openOv('syn-ov');
 }
-
-async function submitAddSyn() {
+async function submitSyn() {
+  const orig = document.getElementById('syn-orig').value;
   const d = {
     standard: document.getElementById('add-syn-std').value.trim(),
     zh:       document.getElementById('add-syn-zh').value.trim(),
@@ -1178,12 +1236,22 @@ async function submitAddSyn() {
     kr:       document.getElementById('add-syn-kr').value.trim(),
   };
   if (!d.standard) { toast('⚠ 請填入標準詞'); return; }
+  if (orig) d.originalStandard = orig;
+  const action = orig ? 'updateSynonym' : 'addSynonym';
   try {
-    await postGAS('addSynonym', d);
+    await postGAS(action, d);
     closeOv('syn-ov');
     await loadSynonyms();
-    toast('✓ 已新增：' + d.standard);
-  } catch(e) { toast('✗ '+e.message); }
+    toast('✓ ' + (orig ? '已更新：' : '已新增：') + d.standard);
+  } catch(e) { toast('✗ ' + e.message); }
+}
+async function removeSyn(standard) {
+  if (!confirm('確認刪除同義字組：' + standard + '？')) return;
+  try {
+    await postGAS('removeSynonym', { standard });
+    await loadSynonyms();
+    toast('✓ 已刪除：' + standard);
+  } catch(e) { toast('✗ ' + e.message); }
 }
 
 // ════════════════════════════════════════════
@@ -1195,16 +1263,10 @@ async function loadUsers() {
   try {
     const d = await getGAS('getUsers', {});
     if (d.status !== 'ok') {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--rd);padding:1.5rem">
-        ✗ ${d.message || '載入失敗'}</td></tr>`;
-      toast('✗ ' + (d.message || '帳號載入失敗'));
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--rd);padding:1.5rem">✗ ${d.message||'載入失敗'}</td></tr>`;
       return;
     }
     APP.users = d.data || [];
-    if (!APP.users.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--t2);padding:1.5rem">尚無使用者資料</td></tr>';
-      return;
-    }
     tbody.innerHTML = APP.users.map(u => `
       <tr>
         <td style="font-weight:500">${u.account||'—'}</td>
@@ -1213,11 +1275,10 @@ async function loadUsers() {
         <td style="font-size:.78rem">${u.email||'—'}</td>
         <td><span class="bde ${u.role==='admin'?'score-hi':'score-lo'}">${u.role||'—'}</span></td>
         <td style="font-family:var(--mono);font-size:.72rem;color:var(--t2)">${u.createdAt||'—'}</td>
-      </tr>`).join('');
+      </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--t2);padding:1.5rem">尚無使用者</td></tr>';
     toast('✓ 已載入 ' + APP.users.length + ' 位使用者');
   } catch(e) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--rd);padding:1.5rem">✗ 連線失敗：${e.message}</td></tr>`;
-    toast('✗ 連線失敗：' + e.message);
   }
 }
 
@@ -1225,6 +1286,8 @@ async function loadEmails() {
   try {
     const d = await getGAS('getEmails', {});
     APP.emails = d.data || [];
+    const adminDelBtn = (email) => APP.isAdmin
+      ? `<button class="btn sm warn" onclick="removeEmail('${email}')">刪除</button>` : '';
     document.getElementById('email-tbody').innerHTML = APP.emails.map(e => `
       <tr>
         <td>${e.name||'—'}</td>
@@ -1232,15 +1295,34 @@ async function loadEmails() {
         <td style="color:var(--t1)">${e.type||''}</td>
         <td style="color:var(--t2)">${e.lang||''}</td>
         <td><span class="dot dot-g"></span>啟用</td>
-      </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--t2);padding:1.5rem">尚無收件者</td></tr>';
-  } catch(e) { toast('✗ 載入 Email 清單失敗：'+e.message); }
+        <td>${adminDelBtn(e.email||'')}</td>
+      </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--t2);padding:1.5rem">尚無收件者</td></tr>';
+  } catch(e) { toast('✗ 載入 Email 清單失敗'); }
 }
 
 function openAddEmail() { openOv('email-ov'); }
 async function submitAddEmail() {
-  const d = { name:document.getElementById('add-em-name').value.trim(), email:document.getElementById('add-em-email').value.trim(), type:document.getElementById('add-em-type').value, lang:document.getElementById('add-em-lang').value };
+  const d = {
+    name:  document.getElementById('add-em-name').value.trim(),
+    email: document.getElementById('add-em-email').value.trim(),
+    type:  document.getElementById('add-em-type').value,
+    lang:  document.getElementById('add-em-lang').value,
+  };
   if (!d.email) { toast('⚠ 請填入 Email'); return; }
-  try { await postGAS('addEmail',d); closeOv('email-ov'); await loadEmails(); toast('✓ 已新增'); } catch(e){ toast('✗ '+e.message); }
+  try {
+    await postGAS('addEmail', d);
+    closeOv('email-ov');
+    await loadEmails();
+    toast('✓ 已新增：' + d.email);
+  } catch(e) { toast('✗ ' + e.message); }
+}
+async function removeEmail(email) {
+  if (!confirm('確認刪除收件者：' + email + '？')) return;
+  try {
+    await postGAS('removeEmail', { email });
+    await loadEmails();
+    toast('✓ 已刪除：' + email);
+  } catch(e) { toast('✗ ' + e.message); }
 }
 
 // ════════════════════════════════════════════
@@ -1248,19 +1330,20 @@ async function submitAddEmail() {
 // ════════════════════════════════════════════
 function loadSettingsForm() {
   const c = LS.get('cfg') || {};
-  document.getElementById('cfg-gas').value   = c.gasUrl   || '';
-  document.getElementById('cfg-lang').value  = c.lang     || 'zh-TW';
-  document.getElementById('cfg-limit').value = c.limit    || 8;
+  document.getElementById('cfg-gas').value   = c.gasUrl || '';
+  document.getElementById('cfg-lang').value  = c.lang   || 'zh-TW';
+  document.getElementById('cfg-limit').value = c.limit  || 8;
 }
 function saveSettings() {
+  const gasUrl = document.getElementById('cfg-gas').value.trim();
   const cfg = {
-    gasUrl: document.getElementById('cfg-gas').value.trim(),
-    lang:   document.getElementById('cfg-lang').value,
-    limit:  parseInt(document.getElementById('cfg-limit').value)||8,
+    gasUrl,
+    lang:  document.getElementById('cfg-lang').value,
+    limit: parseInt(document.getElementById('cfg-limit').value) || 8,
   };
   LS.set('cfg', cfg);
-  APP.gasUrl = cfg.gasUrl;
-  toast('✓ 設定已儲存');
+  APP.gasUrl = gasUrl;
+  toast('✓ 設定已儲存' + (gasUrl ? '' : '（⚠ GAS URL 尚未填入）'));
 }
 
 // ════════════════════════════════════════════
@@ -1269,18 +1352,31 @@ function saveSettings() {
 function setProgress(p) {
   const w = document.getElementById('prog-wrap');
   const b = document.getElementById('prog-bar');
-  if (p<=0) { w.style.display='none'; b.style.width='0%'; return; }
+  if (p <= 0) { w.style.display='none'; b.style.width='0%'; return; }
   w.style.display='block'; b.style.width=p+'%';
 }
 function openOv(id) { document.getElementById(id).classList.add('open'); }
 function closeOv(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.ov').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)closeOv(ov.id);}));
+document.querySelectorAll('.ov').forEach(ov =>
+  ov.addEventListener('click', e => { if (e.target === ov) closeOv(ov.id); })
+);
 
 let _tt;
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
-  clearTimeout(_tt); _tt = setTimeout(()=>el.classList.remove('show'), 3500);
+  clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove('show'), 3500);
+}
+function showErr(msg) {
+  const e = document.getElementById('l-err');
+  e.textContent = msg; e.style.color = 'var(--rd)'; e.style.display = 'block';
+  setTimeout(() => e.style.display = 'none', 5000);
+}
+function clearCache() {
+  if (confirm('清除所有本地快取？')) {
+    Object.keys(localStorage).filter(k => k.startsWith(AK)).forEach(k => localStorage.removeItem(k));
+    location.reload();
+  }
 }
 </script>
 </body>
