@@ -232,7 +232,7 @@ textarea.inp{resize:vertical;height:80px}
     <div class="fg"><label>帳號</label><input id="l-user" type="text" autocomplete="username" placeholder="請輸入帳號"></div>
     <div class="fg"><label>密碼</label><input id="l-pass" type="password" autocomplete="current-password" placeholder="請輸入密碼"></div>
     <button class="btn-login" onclick="doLogin()">登入系統</button>
-    <div id="l-err">帳號或密碼錯誤</div>
+    <div id="l-err" style="display:none"></div>
     <div class="l-hint"><span onclick="clearCache()">清除快取重試</span></div>
   </div>
 </div>
@@ -648,6 +648,13 @@ textarea.inp{resize:vertical;height:80px}
 
 <script>
 // ════════════════════════════════════════════
+// ★ GAS URL 設定 — 修改此處 ★
+// 將您的 Apps Script Web App URL 貼在下方
+// ════════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz8lCnRYNERT_aWEAuKDFXklVJSKb1jZzSpIBfzTLSPZxZWgXSnBnWN2JV3VWqDga0CUQ/exec';
+// 以上這行改成您的實際 URL 後，上傳到 GitHub 即可
+
+// ════════════════════════════════════════════
 // APP STATE
 // ════════════════════════════════════════════
 const AK = 'hih3';
@@ -657,16 +664,16 @@ const LS = {
 };
 
 let APP = {
-  user: null,
-  isAdmin: false,   // true = admin，false = 一般人員（只可新增）
-  gasUrl: '',
+  user:    null,
+  isAdmin: false,
+  gasUrl:  GAS_URL,   // 直接使用常數，不從 localStorage 讀取
   results: [],
   kwCounts: {},
   keywords: [],
   synonyms: [],
   websites: [],
-  users: [],
-  emails: [],
+  users:   [],
+  emails:  [],
 };
 
 const REGION = {tw:'🇹🇼 台灣',jp:'🇯🇵 日本',cn:'🇨🇳 中國',kr:'🇰🇷 韓國',eu:'🇪🇺 歐洲',us:'🇺🇸 美國'};
@@ -681,22 +688,15 @@ async function doLogin() {
   const p = document.getElementById('l-pass').value;
   if (!u || !p) { showErr('請輸入帳號和密碼'); return; }
 
-  const cfg    = LS.get('cfg') || {};
-  const gasUrl = cfg.gasUrl || '';
-  if (!gasUrl) {
-    showErr('請先在「系統設定」填入 Apps Script URL 並儲存，再登入');
-    return;
-  }
-
   const btn = document.querySelector('.btn-login');
   btn.disabled = true; btn.textContent = '驗證中…';
 
   try {
-    const d = await callGAS(gasUrl, 'login', { u, p });
+    const d = await callGAS(GAS_URL, 'login', { u, p });
     if (d && d.status === 'ok') {
-      APP.gasUrl  = gasUrl;
       APP.user    = d.user || { account: u, nameZh: u, role: 'viewer' };
       APP.isAdmin = (APP.user.role || '').toLowerCase() === 'admin';
+      APP.gasUrl  = GAS_URL;
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').style.display          = 'block';
       const name = APP.user.nameZh || u;
@@ -709,8 +709,8 @@ async function doLogin() {
       showErr((d && d.message) || '帳號或密碼錯誤');
     }
   } catch(e) {
-    showErr('連線失敗：' + e.message);
     console.error('Login error:', e);
+    showErr('連線失敗，請確認 GAS 已正確部署（' + e.message + '）');
   } finally {
     btn.disabled = false; btn.textContent = '登入系統';
   }
@@ -745,8 +745,7 @@ function nav(el) {
 // INIT
 // ════════════════════════════════════════════
 function initApp() {
-  const cfg = LS.get('cfg') || {};
-  APP.gasUrl = cfg.gasUrl || '';
+  APP.gasUrl = GAS_URL;  // 永遠使用寫死的 GAS URL
   document.getElementById('st-kw').textContent = '…';
   loadDashboard(false);
 }
@@ -803,7 +802,7 @@ async function postGAS(action, data) {
 // DASHBOARD
 // ════════════════════════════════════════════
 async function loadDashboard(force) {
-  if (!APP.gasUrl) { toast('⚠ 請先在設定頁填入 Apps Script URL'); return; }
+
   setProgress(10);
   try {
     const d = await getGAS('getDashboard', force?{force:'1'}:{});
@@ -858,7 +857,7 @@ async function loadDashboard(force) {
 }
 
 async function triggerFetch() {
-  if (!APP.gasUrl) { toast('⚠ 請先設定 Apps Script URL'); return; }
+
   const btn = document.getElementById('btn-fetch');
   btn.disabled = true; btn.textContent = '… AI 抓取中';
   setProgress(20);
@@ -878,7 +877,7 @@ async function triggerFetch() {
 }
 
 async function sendEmail() {
-  if (!APP.gasUrl) { toast('⚠ 請先設定 Apps Script URL'); return; }
+
   toast('✉ 發送中...');
   try {
     const d = await getGAS('sendEmail', {});
@@ -1330,20 +1329,19 @@ async function removeEmail(email) {
 // ════════════════════════════════════════════
 function loadSettingsForm() {
   const c = LS.get('cfg') || {};
-  document.getElementById('cfg-gas').value   = c.gasUrl || '';
-  document.getElementById('cfg-lang').value  = c.lang   || 'zh-TW';
-  document.getElementById('cfg-limit').value = c.limit  || 8;
+  // GAS URL 顯示為唯讀（直接寫死在程式碼中，修改需重新上傳 index.html）
+  const gasEl = document.getElementById('cfg-gas');
+  if (gasEl) { gasEl.value = GAS_URL; gasEl.readOnly = true; gasEl.style.opacity='.6'; }
+  document.getElementById('cfg-lang').value  = c.lang  || 'zh-TW';
+  document.getElementById('cfg-limit').value = c.limit || 8;
 }
 function saveSettings() {
-  const gasUrl = document.getElementById('cfg-gas').value.trim();
   const cfg = {
-    gasUrl,
     lang:  document.getElementById('cfg-lang').value,
     limit: parseInt(document.getElementById('cfg-limit').value) || 8,
   };
   LS.set('cfg', cfg);
-  APP.gasUrl = gasUrl;
-  toast('✓ 設定已儲存' + (gasUrl ? '' : '（⚠ GAS URL 尚未填入）'));
+  toast('✓ 設定已儲存');
 }
 
 // ════════════════════════════════════════════
